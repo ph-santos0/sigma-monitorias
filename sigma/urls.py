@@ -13,11 +13,13 @@ urlpatterns = [
     # Rotas do Monitor (Estudante)
     # ----------------------------------------------------
     path('monitor/', views.dashboard_monitor, name='dashboard_monitor'),
+    path('monitor/enviar-documento/', views.enviar_documento, name='enviar_documento'),
+    path('monitor/editar-documento/<int:entrega_id>/', views.editar_documento, name='editar_documento'),
+    path('monitor/excluir-documento/<int:entrega_id>/', views.excluir_documento, name='excluir_documento'),
     
     # ----------------------------------------------------
     # Rotas do Professor Orientador
     # ----------------------------------------------------
-
     path('professor/', views.dashboard_professor, name='dashboard_professor'),
     path('professor/avaliar/<int:entrega_id>/<str:acao>/', views.avaliar_entrega, name='avaliar_entrega'),
     path('professor/historico/<int:monitoria_id>/', views.historico_monitor, name='historico_monitor'),
@@ -36,4 +38,10 @@ urlpatterns = [
     path('pedagogico/prazos/', views.gerenciar_prazos, name='gerenciar_prazos'),
     path('pedagogico/auditoria/', views.auditoria_documentos, name='auditoria_documentos'),
     path('pedagogico/auditoria/<int:entrega_id>/<str:acao>/', views.processar_auditoria, name='processar_auditoria'),
+    
+    # ----------------------------------------------------
+    # Rotas do Monitor (Estudante)
+    # ----------------------------------------------------
+    path('monitor/', views.dashboard_monitor, name='dashboard_monitor'),
+    path('monitor/enviar-documento/', views.enviar_documento, name='enviar_documento'),
 ]

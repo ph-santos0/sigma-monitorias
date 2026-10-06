@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Usuario, Monitoria,Prazo
+from .models import Usuario, Monitoria
+from .models import AtendimentoDiario, EntregaMensal
 
 # ==========================================
 # FORMULÁRIO DE CRIAÇÃO DE USUÁRIOS
@@ -61,3 +63,45 @@ class PrazoForm(forms.ModelForm):
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'})
         }
+            
+# ==========================================
+# FORMULÁRIOS DO MONITOR
+# ==========================================
+class AtendimentoDiarioForm(forms.ModelForm):
+    class Meta:
+        model = AtendimentoDiario
+        fields = ['data', 'hora_inicio', 'hora_fim', 'atividades_desenvolvidas', 'qtd_estudantes_presentes']
+        widgets = {
+            'data': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'hora_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'hora_fim': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'atividades_desenvolvidas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'qtd_estudantes_presentes': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+class EntregaMensalForm(forms.ModelForm):
+    # Sobrescrevemos o campo para aceitar e mostrar apenas Ano e Mês (ex: 2026-10)
+    mes_referencia = forms.DateField(
+        widget=forms.DateInput(format='%Y-%m', attrs={'type': 'month', 'class': 'form-control'}),
+        input_formats=['%Y-%m']
+    )
+
+    class Meta:
+        model = EntregaMensal
+        fields = ['mes_referencia', 'total_alunos_presentes', 'arquivo_anexo_ii', 'arquivo_anexo_iii', 'arquivo_anexo_iv']
+        widgets = {
+            'total_alunos_presentes': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'arquivo_anexo_ii': forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf,image/*'}),
+            'arquivo_anexo_iii': forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf,image/*'}),
+            'arquivo_anexo_iv': forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf,image/*'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # OBRIGATORIEDADE DOS 3 ANEXOS:
+        # Garante que o formulário não é submetido sem os três ficheiros anexados.
+        # Ao editar, o Django reconhecerá que os ficheiros já existem e não bloqueará a ação.
+        self.fields['arquivo_anexo_ii'].required = True
+        self.fields['arquivo_anexo_iii'].required = True
+        self.fields['arquivo_anexo_iv'].required = True

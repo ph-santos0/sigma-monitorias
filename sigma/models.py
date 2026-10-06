@@ -52,7 +52,7 @@ class AtendimentoDiario(models.Model):
     atividades_desenvolvidas = models.TextField() #[cite: 1]
     qtd_estudantes_presentes = models.IntegerField(help_text="Monitor declara a quantidade de presentes") 
 
-# 5. CONSOLIDAÇÃO MENSAL (Onde o Monitor anexa o documento final)
+# 5. CONSOLIDAÇÃO MENSAL (Envio dos 3 Anexos)
 class EntregaMensal(models.Model):
     STATUS_CHOICES = (
         ('P', 'Pendente'),
@@ -63,11 +63,24 @@ class EntregaMensal(models.Model):
     monitoria = models.ForeignKey(Monitoria, on_delete=models.CASCADE)
     mes_referencia = models.DateField()
     
-    # Único arquivo que precisa ser upado, conforme sua regra (comprova assinaturas físicas)
-    arquivo_anexo_ii = models.FileField(upload_to='anexos_frequencia/', help_text="Registro de Frequência Mensal assinado") #[cite: 1]
+    data_envio = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    
+    # Campo para o relatório e dashboard
+    total_alunos_presentes = models.PositiveIntegerField(
+        default=0, 
+        help_text="Total de estudantes frequentes no presente mês"
+    )
+    
+    # Ficheiros dos 3 anexos
+    arquivo_anexo_ii = models.FileField(upload_to='anexos_frequencia/anexo_ii/', help_text="Registro de Frequência Mensal assinado")
+    arquivo_anexo_iii = models.FileField(upload_to='anexos_frequencia/anexo_iii/', blank=True, null=True, help_text="Plano de Trabalho Mensal")
+    arquivo_anexo_iv = models.FileField(upload_to='anexos_frequencia/anexo_iv/', blank=True, null=True, help_text="Declaração Mensal")
     
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')
     feedback_professor = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Entrega de {self.mes_referencia.strftime('%m/%Y')} - {self.monitoria.monitor.get_full_name()}"
 
 # 6. AVALIAÇÃO SEMESTRAL DO MONITOR (Referente ao Anexo V)[cite: 2]
 class AvaliacaoSemestral(models.Model):

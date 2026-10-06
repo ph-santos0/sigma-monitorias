@@ -1,0 +1,111 @@
+{% extends 'sigma/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-secondary">{% if editando %}Editar Submissão{% else %}Nova Submissão Mensal{% endif %}</h3>
+    <a href="{% url 'dashboard_monitor' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
+</div>
+
+<!-- Bloco de Mensagens de Erro Vermelhas -->
+{% if messages %}
+    <div class="mb-4" style="max-width: 700px;">
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-start border-4 border-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+            {% if message.tags == 'error' %}
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-5 me-2" style="vertical-align: middle;"></i> 
+                <strong class="text-danger">Atenção:</strong> 
+            {% elif message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill text-success fs-5 me-2" style="vertical-align: middle;"></i>
+            {% endif %}
+            
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
+
+<div class="card border-0 shadow-sm" style="max-width: 700px;">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="mb-0 text-secondary"><i class="bi bi-file-earmark-arrow-up"></i> Envio de Documentação e Relatório</h5>
+    </div>
+    <div class="card-body">
+        {% if monitoria %}
+            <div class="alert alert-info bg-light border-info small mb-4">
+                <strong><i class="bi bi-info-circle"></i> Vínculo Atual:</strong><br>
+                Disciplina: {{ monitoria.disciplina }}<br>
+                Orientador(a): {{ monitoria.professor.get_full_name|default:monitoria.professor.username }}
+            </div>
+        
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-primary">Mês e Ano de Referência</label>
+                        {{ form.mes_referencia }}
+                        <div class="text-danger small">{{ form.mes_referencia.errors }}</div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-primary">Total de Alunos Presentes</label>
+                        {{ form.total_alunos_presentes }}
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">Quantidade total de estudantes atendidos neste mês.</div>
+                        <div class="text-danger small">{{ form.total_alunos_presentes.errors }}</div>
+                    </div>
+                </div>
+
+                <hr class="text-muted my-4">
+                <h6 class="mb-3 text-secondary">Arquivos (Anexos)</h6>
+
+                <!-- Anexo II -->
+                <div class="mb-3 p-3 bg-light rounded border">
+                    <label class="form-label fw-bold">Anexo II - Frequência Assinada</label>
+                    {% if editando and form.instance.arquivo_anexo_ii %}
+                        <div class="mb-2 text-success small">
+                            <i class="bi bi-check-circle-fill"></i> Arquivo salvo: <a href="{{ form.instance.arquivo_anexo_ii.url }}" target="_blank">Clique para ver</a>. (Envie outro apenas se quiser substituir)
+                        </div>
+                    {% endif %}
+                    {{ form.arquivo_anexo_ii }}
+                    <div class="text-danger small">{{ form.arquivo_anexo_ii.errors }}</div>
+                </div>
+
+                <!-- Anexo III -->
+                <div class="mb-3 p-3 bg-light rounded border">
+                    <label class="form-label fw-bold">Anexo III - Plano de Trabalho</label>
+                    {% if editando and form.instance.arquivo_anexo_iii %}
+                        <div class="mb-2 text-success small">
+                            <i class="bi bi-check-circle-fill"></i> Arquivo salvo: <a href="{{ form.instance.arquivo_anexo_iii.url }}" target="_blank">Clique para ver</a>. (Envie outro apenas se quiser substituir)
+                        </div>
+                    {% endif %}
+                    {{ form.arquivo_anexo_iii }}
+                    <div class="text-danger small">{{ form.arquivo_anexo_iii.errors }}</div>
+                </div>
+
+                <!-- Anexo IV -->
+                <div class="mb-4 p-3 bg-light rounded border">
+                    <label class="form-label fw-bold">Anexo IV - Declaração Mensal</label>
+                    {% if editando and form.instance.arquivo_anexo_iv %}
+                        <div class="mb-2 text-success small">
+                            <i class="bi bi-check-circle-fill"></i> Arquivo salvo: <a href="{{ form.instance.arquivo_anexo_iv.url }}" target="_blank">Clique para ver</a>. (Envie outro apenas se quiser substituir)
+                        </div>
+                    {% endif %}
+                    {{ form.arquivo_anexo_iv }}
+                    <div class="text-danger small">{{ form.arquivo_anexo_iv.errors }}</div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-3">
+                    <a href="{% url 'dashboard_monitor' %}" class="btn btn-light">Cancelar</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-send"></i> {% if editando %}Salvar Alterações e Reenviar{% else %}Enviar Documentação{% endif %}
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> Ainda não possui uma monitoria vinculada. Contacte o Setor Pedagógico.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
