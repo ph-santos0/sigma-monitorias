@@ -1,6 +1,5 @@
 from django.db import models
 
-# Create your models here.
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -59,6 +58,7 @@ class EntregaMensal(models.Model):
         ('P', 'Pendente'),
         ('A', 'Aprovado pelo Professor'),
         ('R', 'Recusado (Necessita Ajuste)'),
+        ('F', 'Auditado e Arquivado'),
     )
     monitoria = models.ForeignKey(Monitoria, on_delete=models.CASCADE)
     mes_referencia = models.DateField()
@@ -113,3 +113,13 @@ class AvaliacaoPrograma(models.Model):
     pontos_negativos = models.TextField() #[cite: 3]
     sugestoes = models.TextField() #[cite: 3]
     parecer_colegiado = models.TextField() #[cite: 3]
+
+
+class Prazo(models.Model):
+    titulo = models.CharField(max_length=200, verbose_name="Título do Prazo (Ex: Relatório de Maio)")
+    data_limite = models.DateField(verbose_name="Data Limite")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição/Aviso")
+    ativo = models.BooleanField(default=True, verbose_name="Prazo Ativo?")
+
+    def __str__(self):
+        return f"{self.titulo} - {self.data_limite.strftime('%d/%m/%Y')}"

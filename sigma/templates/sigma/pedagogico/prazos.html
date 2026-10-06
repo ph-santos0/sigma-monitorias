@@ -1,0 +1,81 @@
+{% extends 'sigma/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-secondary"><i class="bi bi-calendar-event"></i> Gestão de Prazos</h3>
+</div>
+
+<!-- Alertas -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    <!-- Formulário de Novo Prazo -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white pb-0 border-0 pt-3">
+                <h5 class="card-title text-primary"><i class="bi bi-plus-circle"></i> Novo Prazo</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label text-dark fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-lg"></i> Salvar Prazo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Prazos Cadastrados -->
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Status</th>
+                            <th>Título do Prazo</th>
+                            <th>Data Limite</th>
+                            <th>Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prazo in prazos %}
+                        <tr>
+                            <td>
+                                {% if prazo.ativo %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Encerrado</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">{{ prazo.titulo }}</td>
+                            <td>{{ prazo.data_limite|date:"d/m/Y" }}</td>
+                            <td class="text-muted small">{{ prazo.descricao|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="bi bi-calendar-x display-4 d-block mb-2"></i>
+                                Nenhum prazo cadastrado no sistema.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

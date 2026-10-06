@@ -1,0 +1,40 @@
+{% extends 'sigma/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-secondary"><i class="bi bi-person-badge"></i> Meu Perfil</h3>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+            <div class="user-avatar bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                <i class="bi bi-person"></i>
+            </div>
+            <div>
+                <h4 class="mb-0">{{ user.get_full_name|default:user.username }}</h4>
+                <span class="badge bg-dark mt-1">
+                    {% if user.tipo_usuario == 'M' %}Monitor{% elif user.tipo_usuario == 'P' %}Professor{% else %}Setor Pedagógico{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">Matrícula/SIAPE:</div>
+            <div class="col-sm-8">{{ user.username }}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">Email:</div>
+            <div class="col-sm-8">{{ user.email|default:"Não cadastrado" }}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">CPF:</div>
+            <div class="col-sm-8">{{ user.cpf|default:"Não cadastrado" }}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">Telefone:</div>
+            <div class="col-sm-8">{{ user.telefone|default:"Não cadastrado" }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

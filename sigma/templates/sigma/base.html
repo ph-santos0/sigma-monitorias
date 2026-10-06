@@ -58,8 +58,8 @@
                 {% elif user.tipo_usuario == 'A' %}
                 <!-- Menu do Pedagógico -->
                 <li><a href="{% url 'dashboard_pedagogico' %}"><i class="bi bi-house"></i> Início</a></li>
-                <li><a href="#"><i class="bi bi-calendar-event"></i> Prazos</a></li>
-                <li><a href="#"><i class="bi bi-shield-check"></i> Auditoria de Documentos</a></li>
+                <li><a href="{% url 'gerenciar_prazos' %}"><i class="bi bi-calendar-event"></i> Prazos</a></li>
+                <li><a href="{% url 'auditoria_documentos' %}"><i class="bi bi-shield-check"></i> Auditoria de Documentos</a></li>
                 <li><a href="{% url 'listar_usuarios' %}"><i class="bi bi-person-gear"></i> Gestão de Usuários</a></li> 
                 <li><a href="{% url 'criar_monitoria' %}"><i class="bi bi-link-45deg"></i> Vincular Monitor</a></li> 
                 
