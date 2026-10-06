@@ -3,66 +3,140 @@
 {% block content %}
 <h3 class="mb-4 text-secondary">Início - Ambiente do Monitor</h3>
 
+<!-- Mensagens do Sistema -->
+{% if messages %}
+    <div class="mb-4">
+    {% for message in messages %}
+        <!-- Traduz a tag 'error' do Django para 'danger' do Bootstrap -->
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0 border-start border-4 border-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+            {% if message.tags == 'error' %}
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-5 me-2" style="vertical-align: middle;"></i> 
+                <strong class="text-danger">Atenção:</strong> 
+            {% elif message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill text-success fs-5 me-2" style="vertical-align: middle;"></i>
+            {% endif %}
+            
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
+
+{% if monitoria %}
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card border-start border-warning border-4">
+    <!-- Card 1: Monitoria -->
+    <div class="col-md-4 mb-3">
+        <div class="card border-start border-success border-4 h-100 shadow-sm">
             <div class="card-body">
-                <h6 class="text-muted"><i class="bi bi-exclamation-triangle"></i> Próximo Prazo</h6>
-                <h3 class="mb-0">10/Set</h3>
-                <small class="text-secondary">Envio do Anexo II e Declaração</small>
+                <h6 class="text-muted"><i class="bi bi-journal-bookmark"></i> Disciplina</h6>
+                <h5 class="mb-1 text-success">{{ monitoria.disciplina }}</h5>
+                <small class="text-secondary">Orientador: {{ monitoria.professor.get_full_name }}</small>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-start border-primary border-4">
+    
+    <!-- Card 2: Resumo Condensado (Prazo e Status) -->
+    <div class="col-md-4 mb-3">
+        <div class="card border-start border-info border-4 h-100 shadow-sm">
             <div class="card-body">
-                <h6 class="text-muted"><i class="bi bi-file-earmark-check"></i> Status do Mês Atual</h6>
-                <h3 class="mb-0 text-primary">Pendente</h3>
-                <small class="text-secondary">Aguardando sua submissão</small>
+                <h6 class="text-muted"><i class="bi bi-calendar-check"></i> Status do Envio (Mês Anterior)</h6>
+                <h4 class="mb-1 {{ resumo.cor }}">{{ resumo.status }}</h4>
+                <small class="text-secondary"><strong>Prazo Limite:</strong> {{ resumo.prazo }}</small>
             </div>
         </div>
     </div>
-    <div class="col-md-4"> 
-        <div class="card bg-light">
+    
+    <!-- Card 3: Avisos do Sistema -->
+    <div class="col-md-4 mb-3"> 
+        <div class="card border-start border-warning border-4 h-100 shadow-sm">
             <div class="card-body">
-                <h6 class="text-muted"><i class="bi bi-bell"></i> Avisos Recentes</h6>
-                <p class="mb-0 small text-danger"><b>Prof. Silva:</b> Corrigir o relatório do mês anterior.</p>
+                <h6 class="text-muted border-bottom pb-2"><i class="bi bi-bell-fill text-warning"></i> Avisos</h6>
+                {% if avisos %}
+                    <ul class="mb-0 ps-3 small text-danger">
+                        {% for aviso in avisos %}
+                            <li class="mb-1">{{ aviso }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mb-0 small text-success"><i class="bi bi-check-circle"></i> Nenhum alerta no momento. Você está em dia!</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
+<div class="card shadow-sm border-0">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0 text-secondary">Meus Documentos (Histórico)</h5>
-        <!-- Botão que abriria um Modal de envio -->
-        <button class="btn btn-success btn-sm"><i class="bi bi-cloud-arrow-up"></i> Nova Submissão</button>
+        <h5 class="mb-0 text-secondary"><i class="bi bi-folder2-open"></i> Histórico de Envios</h5>
+        <a href="{% url 'enviar_documento' %}" class="btn btn-success btn-sm"><i class="bi bi-cloud-arrow-up"></i> Nova Submissão</a>
     </div>
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Mês Ref.</th>
-                    <th>Tipo de Documento</th>
-                    <th>Status</th>
-                    <th>Feedback/Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Agosto/2026</td>
-                    <td>Frequência Mensal (Anexo II)</td>
-                    <td><span class="badge bg-danger">Recusado</span></td>
-                    <td><span class="text-muted small">Assinatura faltando. Favor reenviar.</span></td>
-                </tr>
-                <tr>
-                    <td>Julho/2026</td>
-                    <td>Frequência Mensal (Anexo II)</td>
-                    <td><span class="badge bg-success">Aprovado</span></td>
-                    <td><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i> Ver</button></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mês de Referência</th>
+                        <th>Atendidos</th>
+                        <th>Status</th>
+                        <th>Feedback do Orientador / Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in entregas %}
+                    <tr>
+                        <td class="fw-bold text-secondary">{{ entrega.mes_referencia|date:"m/Y" }}</td>
+                        <td>{{ entrega.total_alunos_presentes }} alunos</td>
+                        <td>
+                            {% if entrega.status == 'P' %}
+                                <span class="badge bg-warning text-dark">Em Análise</span>
+                            {% elif entrega.status == 'A' %}
+                                <span class="badge bg-success">Aprovado</span>
+                            {% elif entrega.status == 'R' %}
+                                <span class="badge bg-danger">Recusado</span>
+                            {% endif %}
+                            {% if entrega.foi_entregue_com_atraso %}
+                                <div class="mt-1"><span class="badge bg-danger bg-opacity-75">Enviado com Atraso</span></div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- Exibe o motivo da recusa se houver -->
+                            {% if entrega.status == 'R' %}
+                                <div class="text-danger small mb-2 fw-bold">Motivo: {{ entrega.feedback_professor }}</div>
+                            {% endif %}
+                            
+                            <div class="btn-group">
+                                <a href="{{ entrega.arquivo_anexo_ii.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Anexo II">Anexo II</a>
+                                {% if entrega.arquivo_anexo_iii %}
+                                    <a href="{{ entrega.arquivo_anexo_iii.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Anexo III">Anexo III</a>
+                                {% endif %}
+                                {% if entrega.arquivo_anexo_iv %}
+                                    <a href="{{ entrega.arquivo_anexo_iv.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Anexo IV">Anexo IV</a>
+                                {% endif %}
+                                
+                                <!-- Botões de Editar e Excluir -->
+                                {% if entrega.status != 'A' %}
+                                    <a href="{% url 'editar_documento' entrega.id %}" class="btn btn-sm btn-primary ms-2" title="Editar Arquivos">
+                                        <i class="bi bi-pencil-square"></i> Editar
+                                    </a>
+                                    
+                                    <!-- Botão de Excluir com confirmação via JavaScript -->
+                                    <a href="{% url 'excluir_documento' entrega.id %}" class="btn btn-sm btn-danger ms-1" title="Excluir Submissão" onclick="return confirm('Tem certeza que deseja excluir todos os documentos deste mês? Esta ação não pode ser desfeita.');">
+                                        <i class="bi bi-trash"></i> Excluir
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">Você ainda não enviou nenhum documento.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
