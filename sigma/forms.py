@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Usuario, Monitoria
+from .models import Usuario, Monitoria,Prazo
 
 # ==========================================
 # FORMULÁRIO DE CRIAÇÃO DE USUÁRIOS
@@ -47,3 +47,17 @@ class MonitoriaForm(forms.ModelForm):
         # Se o campo tipo_bolsa existir, aplica o visual
         if 'tipo_bolsa' in self.fields:
             self.fields['tipo_bolsa'].widget.attrs['class'] = 'form-select'
+
+# ==========================================
+# FORMULÁRIO DE PRAZOS (PEDAGÓGICO)
+# ==========================================
+class PrazoForm(forms.ModelForm):
+    class Meta:
+        model = Prazo
+        fields = '__all__'
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Entrega de Frequência - Junho'}),
+            'data_limite': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+        }

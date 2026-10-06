@@ -1,0 +1,71 @@
+{% extends 'sigma/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-secondary"><i class="bi bi-shield-check"></i> Auditoria de Frequências</h3>
+</div>
+
+<!-- Alertas -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-warning text-dark pt-3 pb-2 border-0">
+        <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Aguardando Auditoria</h5>
+    </div>
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            {% for entrega in documentos_pendentes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center p-4">
+                <div>
+                    <h5 class="mb-1 text-dark"><b>{{ entrega.monitoria.monitor.get_full_name|default:entrega.monitoria.monitor.username }}</b></h5>
+                    <p class="mb-1 text-muted"><i class="bi bi-journal-bookmark"></i> {{ entrega.monitoria.disciplina }} - Prof. {{ entrega.monitoria.professor.get_full_name }}</p>
+                    <span class="badge bg-primary">Ref: {{ entrega.mes_referencia|date:"F/Y" }}</span>
+                </div>
+                <div class="btn-group">
+                    {% if entrega.arquivo_anexo_ii %}
+                    <a href="{{ entrega.arquivo_anexo_ii.url }}" target="_blank" class="btn btn-outline-primary"><i class="bi bi-eye"></i> Ver PDF</a>
+                    {% endif %}
+                    <a href="{% url 'processar_auditoria' entrega.id 'aprovar' %}" class="btn btn-success"><i class="bi bi-check-all"></i> Arquivar</a>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}"><i class="bi bi-x-circle"></i> Reprovar</button>
+                </div>
+            </li>
+
+            <!-- Modal de Recusa -->
+            <div class="modal fade" id="modalRecusa{{ entrega.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="POST" action="{% url 'processar_auditoria' entrega.id 'recusar' %}">
+                            {% csrf_token %}
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Reprovar Documento</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Explique o erro encontrado no documento de <b>{{ entrega.monitoria.monitor.get_full_name }}</b>:</p>
+                                <textarea class="form-control" name="motivo_recusa" rows="3" required placeholder="Ex: Falta assinatura do professor no rodapé..."></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-danger">Confirmar Reprovação</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <li class="list-group-item text-center py-5 text-muted">
+                <i class="bi bi-shield-check display-4 d-block mb-3 text-success"></i>
+                Nenhum documento aguardando auditoria. Tudo em dia!
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

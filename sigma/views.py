@@ -3,8 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .models import Usuario, Monitoria, EntregaMensal
-from .forms import UsuarioCreationForm,MonitoriaForm
+from .models import Usuario, Monitoria, EntregaMensal,Prazo
+from .forms import UsuarioCreationForm,MonitoriaForm,PrazoForm
 
 
 # =====================================================================
@@ -198,18 +198,76 @@ def criar_usuario(request):
 
 @login_required
 def criar_monitoria(request):
-    # Apenas Setor Pedagógico pode acessar essa tela
-    if request.user.tipo_usuario != 'A' and not request.user.is_superuser:
-        messages.error(request, 'Acesso restrito ao Setor Pedagógico.')
-        return redirect('login')
-
     if request.method == 'POST':
         form = MonitoriaForm(request.POST)
         if form.is_valid():
+            # Só tenta gravar se todos os campos (incluindo as datas) estiverem preenchidos
             form.save()
-            messages.success(request, 'Vínculo de monitoria criado com sucesso!')
+            messages.success(request, 'Vínculo criado com sucesso!')
             return redirect('dashboard_pedagogico')
+        else:
+            # Se faltar algo, devolve um erro visual no ecrã em vez de rebentar a base de dados
+            messages.error(request, 'Erro de validação. Verifique se preencheu todos os campos, incluindo as datas.')
     else:
         form = MonitoriaForm()
         
     return render(request, 'sigma/pedagogico/criar_monitoria.html', {'form': form})
+
+def gerenciar_prazos(request):
+    # Proteção: Apenas setor pedagógico ('A' = Admin/Pedagógico) pode acessar
+    if request.user.tipo_usuario != 'A':
+        return redirect('login')
+
+    if request.method == 'POST':
+        form = PrazoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Novo prazo cadastrado com sucesso!')
+            return redirect('gerenciar_prazos')
+        else:
+            messages.error(request, 'Erro ao criar prazo. Verifique os campos.')
+    else:
+        form = PrazoForm()
+
+    # Busca todos os prazos cadastrados, ordenando pelos mais próximos
+    prazos = Prazo.objects.all().order_by('data_limite')
+    
+    return render(request, 'sigma/pedagogico/prazos.html', {'form': form, 'prazos': prazos})
+
+# ==========================================
+# AUDITORIA DE DOCUMENTOS (PEDAGÓGICO)
+# ==========================================
+def auditoria_documentos(request):
+    if request.user.tipo_usuario != 'A':
+        return redirect('login')
+
+    # Busca apenas os documentos que o professor já aprovou (status = 'A')
+    documentos_pendentes = EntregaMensal.objects.filter(status='A').order_by('mes_referencia')
+    
+    # Busca os últimos 5 documentos já auditados para histórico
+    documentos_auditados = EntregaMensal.objects.filter(status='F').order_by('-mes_referencia')[:5]
+
+    return render(request, 'sigma/pedagogico/auditoria.html', {
+        'documentos_pendentes': documentos_pendentes,
+        'documentos_auditados': documentos_auditados
+    })
+
+def processar_auditoria(request, entrega_id, acao):
+    if request.user.tipo_usuario != 'A':
+        return redirect('login')
+
+    entrega = get_object_or_404(EntregaMensal, id=entrega_id)
+
+    if acao == 'aprovar':
+        entrega.status = 'F' # Muda para Auditado e Arquivado
+        entrega.save()
+        messages.success(request, 'Documento auditado e arquivado com sucesso!')
+        
+    elif acao == 'recusar' and request.method == 'POST':
+        motivo = request.POST.get('motivo_recusa')
+        entrega.status = 'R' # Devolve para o status "Recusado" para o aluno corrigir
+        entrega.feedback_professor = f"[REPROVADO PELA AUDITORIA PEDAGÓGICA]: {motivo}"
+        entrega.save()
+        messages.error(request, 'Documento recusado e devolvido ao monitor.')
+
+    return redirect('auditoria_documentos')
