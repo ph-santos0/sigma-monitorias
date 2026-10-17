@@ -35,8 +35,6 @@ cd sigma-monitorias
 
 ### 2. Criar e ativar o ambiente virtual
 
-No Windows (Prompt de Comando):
-
 ```bat
 python -m venv venv
 venv\\Scripts\\activate
