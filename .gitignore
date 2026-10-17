@@ -1,17 +1,26 @@
+# Ambientes Virtuais
 venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-db.sqlite3
-
+env/
 .env
 
-.vscode/
-.idea/
+# Ficheiros compilados do Python
+__pycache__/
+*.py[cod]
+*$py.class
 
+# Base de Dados Local (Não enviar para o repositório)
+db.sqlite3
+db.sqlite3-journal
+
+# Ficheiros de Média (Arquivos anexados reais)
 media/
 staticfiles/
 
+# Logs do sistema e Django
 *.log
+local_settings.py
+
+# Pastas de IDEs
+.vscode/
+.idea/
+.DS_Store

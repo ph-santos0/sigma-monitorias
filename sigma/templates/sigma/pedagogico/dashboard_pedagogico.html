@@ -2,104 +2,199 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="text-secondary">Visão Geral - Setor Pedagógico</h3>
-    <a href="{% url 'listar_usuarios' %}" class="btn btn-outline-primary"><i class="bi bi-person-plus"></i> Gerenciar Usuários</a>
-    <a href="{% url 'criar_monitoria' %}" class="btn btn-success"><i class="bi bi-link-45deg"></i> Nova Monitoria</a>
+    <h3 class="text-secondary"><i class="bi bi-grid-1x2"></i> Visão Geral - Setor Pedagógico</h3>
 </div>
 
+<!-- Alertas de Sucesso ou Erro -->
+{% if messages %}
+    <div class="mb-4">
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0 border-start border-4 border-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+            {% if message.tags == 'error' %}
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-5 me-2" style="vertical-align: middle;"></i> 
+            {% elif message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill text-success fs-5 me-2" style="vertical-align: middle;"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Estatísticas Principais (Conectadas ao Banco de Dados) -->
 <div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Monitores Ativos</h6>
-                <h2 class="mb-0">{{ total_monitores }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Professores</h6>
-                <h2 class="mb-0">{{ total_professores }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-start border-success border-4">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Entregas no Prazo</h6>
-                <h2 class="mb-0 text-success">85%</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-start border-danger border-4">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Atrasos (Mês Atual)</h6>
-                <h2 class="mb-0 text-danger">6</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-white"><i class="bi bi-calendar-check"></i> Gestão de Prazos do Semestre</div>
-            <div class="card-body">
-                <form>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-auto"><label class="col-form-label text-muted">Prazo Mês Vigente:</label></div>
-                        <div class="col-auto"><input type="date" class="form-control" value="2026-09-10"></div>
-                        <div class="col-auto"><button class="btn btn-sm btn-success">Salvar</button></div>
-                    </div>
-                </form>
-                <div class="alert alert-info py-2 small mb-0">
-                    <i class="bi bi-info-circle"></i> O sistema enviará alertas automáticos 3 dias antes deste prazo.
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 border-start border-primary border-4 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="me-4 text-primary opacity-75">
+                    <i class="bi bi-mortarboard-fill display-4"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1">Monitores Cadastrados</h6>
+                    <h2 class="mb-0 fw-bold text-dark">{{ total_monitores }}</h2>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-white"><i class="bi bi-exclamation-triangle"></i> Alertas do Sistema</div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item text-danger small">2 professores ainda não avaliaram os documentos de Julho.</li>
-                    <li class="list-group-item text-warning small">6 monitores não enviaram a frequência de Agosto.</li>
-                </ul>
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 border-start border-success border-4 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="me-4 text-success opacity-75">
+                    <i class="bi bi-person-video3 display-4"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1">Professores Orientadores</h6>
+                    <h2 class="mb-0 fw-bold text-dark">{{ total_professores }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 border-start border-warning border-4 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="me-4 text-warning opacity-75">
+                    <i class="bi bi-inboxes-fill display-4"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1">Auditorias Pendentes</h6>
+                    <h2 class="mb-0 fw-bold {% if auditorias_pendentes > 0 %}text-danger{% else %}text-dark{% endif %}">
+                        {{ auditorias_pendentes }}
+                    </h2>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card mt-2">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-search"></i> Auditoria e Controle de Documentos</span>
-        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-arrow-down"></i> Exportar Relatório (PDF)</button>
-    </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light small">
-                <tr>
-                    <th>Monitor</th>
-                    <th>Curso</th>
-                    <th>Orientador</th>
-                    <th>Mês Ref.</th>
-                    <th>Status Final</th>
-                </tr>
-            </thead>
-            <tbody class="small">
-                <tr>
-                    <td>Julya Alves Cordeiro de Macedo</td>
-                    <td>Sistemas de Inf.</td>
-                    <td>Prof. Mendes</td>
-                    <td>Agosto/2026</td>
-                    <td><span class="badge bg-success">Validado</span></td>
-                </tr>
-            </tbody>
-        </table>
+<!-- PAINEL DE AÇÃO EM MASSA (Cobrança de Atrasados / Lembretes) -->
+<div class="card shadow-sm border-0 border-start border-warning border-4 mb-5 bg-white">
+    <div class="card-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center p-4">
+        <div class="mb-3 mb-lg-0 pe-lg-4">
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-envelope-exclamation-fill text-warning me-2"></i> Comunicação em Massa (Monitores)</h5>
+            <p class="text-muted small mb-2">
+                Dispare e-mails automáticos para todos os monitores ativos que ainda não realizaram a entrega da folha de frequência e relatórios referentes ao mês atual.
+            </p>
+            <div class="text-secondary small" style="font-size: 0.8rem;">
+                <span class="badge bg-secondary me-1"><i class="bi bi-info-circle"></i> Nota Arquitetural (TCC):</span> 
+                <em>Em ambiente de produção na nuvem, o Alerta de Atraso seria executado via CronJob às 08:00 do 6º dia útil do mês. A execução manual via painel está habilitada para fins de homologação e gestão proativa.</em>
+            </div>
+        </div>
+        
+        <div class="flex-shrink-0 mt-3 mt-lg-0">
+            <div class="d-flex flex-column gap-2">
+                
+                <!-- Botão 1: Lembrete Preventivo (Amarelo) -->
+                <form action="{% url 'notificar_atrasados' %}" method="POST" onsubmit="return confirm('Deseja enviar um LEMBRETE amigável para todos os alunos que ainda não enviaram a documentação deste mês?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="tipo_notificacao" value="aviso">
+                    <button type="submit" class="btn btn-warning shadow-sm fw-bold w-100 text-start">
+                        <i class="bi bi-clock-history me-2"></i> Enviar Lembrete Preventivo
+                    </button>
+                </form>
+
+                <!-- Botão 2: Cobrança de Atraso (Vermelho) -->
+                <form action="{% url 'notificar_atrasados' %}" method="POST" onsubmit="return confirm('Atenção: Esta ação enviará um ALERTA GRAVE de possível perda de bolsa para os alunos pendentes. Deseja prosseguir? O processo pode demorar alguns segundos.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="tipo_notificacao" value="atraso">
+                    <button type="submit" class="btn btn-danger shadow-sm fw-bold w-100 text-start">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Cobrar Monitores em Atraso
+                    </button>
+                </form>
+                
+            </div>
+        </div>
     </div>
 </div>
+
+<hr class="text-muted mb-4">
+
+<!-- Atalhos para as Ferramentas do Sistema -->
+<h5 class="text-secondary mb-4"><i class="bi bi-tools"></i> Ferramentas Administrativas</h5>
+
+<div class="row">
+    <!-- Bloco 1: Auditoria -->
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm border-0 text-center card-hover">
+            <div class="card-body p-4">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-ui-checks text-warning fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Auditoria Final</h5>
+                <p class="text-muted small">Verifique os documentos aprovados pelos professores e arquive-os.</p>
+                <a href="{% url 'auditoria_documentos' %}" class="btn btn-outline-warning w-100 mt-2">Abrir Auditoria</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloco 2: Gestão de Vínculos -->
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm border-0 text-center card-hover">
+            <div class="card-body p-4">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-link-45deg text-success fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Nova Monitoria</h5>
+                <p class="text-muted small">Vincule um estudante a um professor, disciplina e estabeleça as datas.</p>
+                <a href="{% url 'criar_monitoria' %}" class="btn btn-outline-success w-100 mt-2">Criar Vínculo</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloco 3: Gestão de Utilizadores -->
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm border-0 text-center card-hover">
+            <div class="card-body p-4">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-people text-primary fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Usuários</h5>
+                <p class="text-muted small">Cadastre novos alunos ou professores, e faça a gestão das contas de acesso.</p>
+                <div class="d-grid gap-2 mt-2">
+                    <a href="{% url 'listar_usuarios' %}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
+                    <a href="{% url 'criar_usuario' %}" class="btn btn-primary btn-sm">Novo Usuário</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloco 4: Relatórios -->
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm border-0 text-center card-hover border-start border-dark border-4">
+            <div class="card-body p-4">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-file-earmark-bar-graph text-dark fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Relatório Mensal</h5>
+                
+                <!-- Adicionada a classe 'no-loading' para evitar o bloqueio infinito nos downloads -->
+                <form action="{% url 'relatorio_mensal' %}" method="GET" class="mt-3 text-start no-loading">
+                    <div class="input-group input-group-sm mb-2">
+                        <select name="mes" class="form-select border-secondary" required>
+                            <option value="" disabled selected>Mês</option>
+                            <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+                            <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+                            <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+                            <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+                        </select>
+                        <input type="number" name="ano" class="form-control border-secondary" value="2026" required>
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" name="formato" value="pdf" class="btn btn-dark btn-sm shadow-sm" formtarget="_blank"><i class="bi bi-printer"></i> Imprimir / Gerar PDF</button>
+                        <button type="submit" name="formato" value="csv" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Baixar Planilha</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilo extra para o efeito Hover nos Cards -->
+<style>
+    .card-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+</style>
 {% endblock %}

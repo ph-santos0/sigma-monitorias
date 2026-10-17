@@ -2,73 +2,114 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="text-secondary"><i class="bi bi-check2-square"></i> Avaliações Pendentes</h3>
+    <h3 class="text-secondary"><i class="bi bi-ui-checks"></i> Todas as Avaliações Pendentes</h3>
+    <a href="{% url 'dashboard_professor' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar ao Painel</a>
 </div>
 
 <!-- Alertas de Sucesso ou Erro -->
 {% if messages %}
+    <div class="mb-4">
     {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0 border-start border-4 border-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+            {% if message.tags == 'error' %}
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-5 me-2" style="vertical-align: middle;"></i> 
+            {% elif message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill text-success fs-5 me-2" style="vertical-align: middle;"></i>
+            {% endif %}
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endfor %}
+    </div>
 {% endif %}
 
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <ul class="list-group list-group-flush">
             {% for entrega in entregas_pendentes %}
-            <li class="list-group-item d-flex justify-content-between align-items-center p-4">
-                <div>
-                    <h5 class="mb-1 text-dark"><b>{{ entrega.monitoria.monitor.get_full_name|default:entrega.monitoria.monitor.username }}</b></h5>
-                    <p class="mb-1 text-muted"><i class="bi bi-journal-bookmark"></i> {{ entrega.monitoria.disciplina }} ({{ entrega.monitoria.curso }})</p>
-                    <span class="badge bg-primary"><i class="bi bi-calendar-event"></i> Frequência: {{ entrega.mes_referencia|date:"F/Y" }}</span>
-                </div>
-                <div class="btn-group">
-                    <!-- Visualizar PDF -->
-                    {% if entrega.arquivo_anexo_ii %}
-                    <a href="{{ entrega.arquivo_anexo_ii.url }}" target="_blank" class="btn btn-outline-primary" title="Visualizar Documento"><i class="bi bi-eye"></i> Ver Documento</a>
-                    {% endif %}
+            <li class="list-group-item p-4 border-bottom">
+                <div class="row align-items-center">
                     
-                    <!-- Botão Aprovar -->
-                    <a href="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" class="btn btn-success" title="Aprovar"><i class="bi bi-check-lg"></i> Aprovar</a>
+                    <!-- Informações do Aluno -->
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h5 class="mb-1 text-dark fw-bold">
+                            <i class="bi bi-person-fill text-secondary"></i> {{ entrega.monitoria.monitor.get_full_name|default:entrega.monitoria.monitor.username }}
+                        </h5>
+                        <p class="mb-2 text-muted small"><i class="bi bi-journal-bookmark"></i> {{ entrega.monitoria.disciplina }} ({{ entrega.monitoria.curso }})</p>
+                        
+                        <span class="badge bg-light text-dark border"><i class="bi bi-calendar-event"></i> Ref: {{ entrega.mes_referencia|date:"F / Y"|title }}</span>
+                        <span class="badge bg-light text-secondary border ms-1"><i class="bi bi-people"></i> {{ entrega.total_alunos_presentes }} Estudantes Atendidos</span>
+                        
+                        {% if entrega.foi_entregue_com_atraso %}
+                            <span class="badge bg-danger bg-opacity-75 ms-1">Entregue com Atraso</span>
+                        {% endif %}
+                    </div>
                     
-                    <!-- Botão Recusar (Abre Modal) -->
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}" title="Solicitar Ajuste"><i class="bi bi-x-lg"></i> Recusar</button>
+                    <!-- Botões de Ação e Ficheiros -->
+                    <div class="col-md-6">
+                        <div class="d-flex flex-column align-items-md-end gap-2">
+                            
+                            <!-- Botões de Ficheiros -->
+                            <div class="btn-group w-100 w-md-auto">
+                                <a href="{{ entrega.arquivo_anexo_ii.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Frequência Assinada"><i class="bi bi-file-earmark-pdf"></i> Anexo II</a>
+                                {% if entrega.arquivo_anexo_iii %}
+                                    <a href="{{ entrega.arquivo_anexo_iii.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Plano de Trabalho"><i class="bi bi-file-earmark-text"></i> Anexo III</a>
+                                {% endif %}
+                                {% if entrega.arquivo_anexo_iv %}
+                                    <a href="{{ entrega.arquivo_anexo_iv.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Declaração Mensal"><i class="bi bi-file-earmark-check"></i> Anexo IV</a>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Botões de Aprovar/Recusar -->
+                            <div class="d-flex gap-1 w-100 w-md-auto">
+                                <button type="button" class="btn btn-danger px-4" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}"><i class="bi bi-x-circle"></i> Recusar</button>
+                                
+                                <form action="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" method="POST" class="d-inline" onsubmit="return confirm('Tem a certeza que deseja aprovar e encaminhar esta documentação para o Pedagógico?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success px-4 h-100"><i class="bi bi-check-circle"></i> Aprovar</button>
+                                </form>
+                            </div>
+                            
+                        </div>
+                    </div>
                 </div>
             </li>
 
             <!-- Modal de Recusa Específico -->
             <div class="modal fade" id="modalRecusa{{ entrega.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
                         <form method="POST" action="{% url 'avaliar_entrega' entrega.id 'recusar' %}">
                             {% csrf_token %}
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title">Solicitar Ajuste de Documento</h5>
+                            <div class="modal-header bg-danger text-white border-0">
+                                <h5 class="modal-title"><i class="bi bi-exclamation-octagon"></i> Solicitar Ajuste ao Monitor</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div class="modal-body">
-                                <p>Aluno: <b>{{ entrega.monitoria.monitor.get_full_name }}</b></p>
+                            <div class="modal-body bg-light">
+                                <div class="alert alert-warning small">
+                                    <i class="bi bi-info-circle"></i> Está a devolver os documentos de <b>{{ entrega.mes_referencia|date:"m/Y" }}</b> do monitor <b>{{ entrega.monitoria.monitor.first_name }}</b>.
+                                </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Justificativa da Recusa (Feedback):</label>
-                                    <textarea class="form-control" name="motivo_recusa" rows="3" required placeholder="Ex: Faltou assinar a página 2..."></textarea>
+                                    <label class="form-label fw-bold text-secondary">Motivo da recusa (O aluno verá esta mensagem):</label>
+                                    <textarea class="form-control" name="motivo_recusa" rows="4" required placeholder="Ex: O Anexo II encontra-se sem assinatura. Por favor, corrija e reenvie."></textarea>
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-danger">Confirmar Recusa</button>
+                            <div class="modal-footer border-0 bg-white">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-danger"><i class="bi bi-send-x"></i> Confirmar Recusa</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+            
             {% empty %}
-            <li class="list-group-item text-success text-center py-5">
-                <i class="bi bi-check-circle display-4 d-block mb-3"></i>
-                <h5 class="text-secondary">Excelente!</h5>
-                <p class="text-muted mb-0">Não tem nenhuma avaliação pendente de momento.</p>
+            <!-- Estado Vazio (Sem Pendências) -->
+            <li class="list-group-item text-success text-center py-5 bg-light border-0">
+                <i class="bi bi-check2-circle display-1 d-block mb-3 opacity-50"></i>
+                <h4 class="fw-bold">Tudo em dia!</h4>
+                <p class="text-muted mb-0">Não possui nenhuma documentação pendente para avaliação no momento.</p>
+                <a href="{% url 'dashboard_professor' %}" class="btn btn-outline-success mt-4 px-4">Voltar ao Início</a>
             </li>
             {% endfor %}
         </ul>

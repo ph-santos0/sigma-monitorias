@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Mensal SIGMA - {{ mes_nome }}/{{ ano }}</title>
+    <!-- Usa o Bootstrap puro via CDN para garantir a formatação da tabela na hora de imprimir -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fff; color: #000; }
+        
+        /* Regras estritas para a Impressora / Geração de PDF */
+        @media print {
+            .no-print { display: none !important; }
+            @page { margin: 1.5cm; size: landscape; } /* Modo paisagem para caber a tabela */
+            .table-bordered th, .table-bordered td { border: 1px solid #000 !important; }
+            .badge { border: 1px solid #000; color: #000 !important; background-color: #fff !important; }
+        }
+        
+        .cabecalho-oficial { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+    </style>
+</head>
+<body class="p-5" onload="window.print()">
+    <!-- Botão flutuante que desaparece na hora de imprimir (útil se o pop-up de impressão fechar sem querer) -->
+    <div class="no-print text-center mb-4">
+        <button onclick="window.print()" class="btn btn-primary btn-lg"><i class="bi bi-printer"></i> Clique aqui se a janela de impressão não abriu</button>
+        <button onclick="window.close()" class="btn btn-secondary btn-lg ms-2">Fechar Relatório</button>
+    </div>
+
+    <!-- CABEÇALHO OFICIAL DO DOCUMENTO -->
+    <div class="cabecalho-oficial text-center">
+        <h2 class="fw-bold mb-1">SISTEMA DE GESTÃO DE MONITORIAS (SIGMA)</h2>
+        <h4>Setor Pedagógico - IFMG Campus São João Evangelista</h4>
+        <h5 class="mt-3 fw-bold text-uppercase">Relatório de Entregas - {{ mes_nome }} / {{ ano }}</h5>
+        <small>Gerado em: {{ data_hoje|date:"d/m/Y" }} | Total de submissões registadas: {{ total_entregas }}</small>
+    </div>
+
+    <!-- TABELA DE DADOS -->
+    <table class="table table-bordered table-sm mt-4">
+        <thead class="table-light text-center align-middle">
+            <tr>
+                <th style="width: 5%">#</th>
+                <th style="width: 25%">Nome do Monitor</th>
+                <th style="width: 15%">Disciplina</th>
+                <th style="width: 25%">Professor Orientador</th>
+                <th style="width: 10%">Alunos Atendidos</th>
+                <th style="width: 20%">Status Atual da Documentação</th>
+            </tr>
+        </thead>
+        <tbody class="align-middle">
+            {% for entrega in entregas %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td class="fw-bold">{{ entrega.monitoria.monitor.get_full_name|default:entrega.monitoria.monitor.username }}</td>
+                <td class="text-center">{{ entrega.monitoria.disciplina }}</td>
+                <td>{{ entrega.monitoria.professor.get_full_name }}</td>
+                <td class="text-center">{{ entrega.total_alunos_presentes }}</td>
+                <td class="text-center">
+                    {% if entrega.status == 'P' %} Aguardando Prof.
+                    {% elif entrega.status == 'A' %} Aguardando Auditoria
+                    {% elif entrega.status == 'F' %} <span class="fw-bold">Arquivo Validado</span>
+                    {% elif entrega.status == 'R' %} Documento Recusado
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <strong>Nenhum documento de monitoria enviado ou registado no mês de {{ mes_nome }}/{{ ano }}.</strong>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

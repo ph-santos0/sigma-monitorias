@@ -38,6 +38,12 @@ urlpatterns = [
     path('pedagogico/prazos/', views.gerenciar_prazos, name='gerenciar_prazos'),
     path('pedagogico/auditoria/', views.auditoria_documentos, name='auditoria_documentos'),
     path('pedagogico/auditoria/<int:entrega_id>/<str:acao>/', views.processar_auditoria, name='processar_auditoria'),
+    path('prazos/excluir/<int:prazo_id>/', views.excluir_prazo, name='excluir_prazo'),
+    path('relatorio/', views.relatorio_mensal, name='relatorio_mensal'),
+    path('usuarios/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'),
+    path('pedagogico/notificar-atrasados/', views.notificar_atrasados, name='notificar_atrasados'),
+    path('pedagogico/monitorias/excluir/<int:monitoria_id>/', views.excluir_monitoria, name='excluir_monitoria'),
+    path('pedagogico/monitorias/editar/<int:monitoria_id>/', views.editar_monitoria, name='editar_monitoria'),
     
     # ----------------------------------------------------
     # Rotas do Monitor (Estudante)

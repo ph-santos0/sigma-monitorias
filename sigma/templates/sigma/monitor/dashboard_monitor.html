@@ -89,18 +89,22 @@
                         <td>{{ entrega.total_alunos_presentes }} alunos</td>
                         <td>
                             {% if entrega.status == 'P' %}
-                                <span class="badge bg-warning text-dark">Em Análise</span>
+                                <span class="badge bg-warning text-dark">Aguardando Orientador</span>
                             {% elif entrega.status == 'A' %}
-                                <span class="badge bg-success">Aprovado</span>
+                                <span class="badge bg-info text-dark">Aguardando Pedagógico</span>
+                            {% elif entrega.status == 'F' %}
+                                <span class="badge bg-success">Arquivado</span>
                             {% elif entrega.status == 'R' %}
                                 <span class="badge bg-danger">Recusado</span>
                             {% endif %}
+                            
+                            <!-- Etiqueta de Atraso -->
                             {% if entrega.foi_entregue_com_atraso %}
-                                <div class="mt-1"><span class="badge bg-danger bg-opacity-75">Enviado com Atraso</span></div>
+                                <div class="mt-1"><span class="badge bg-danger bg-opacity-75" style="font-size: 0.65rem;">Enviado com Atraso</span></div>
                             {% endif %}
                         </td>
                         <td>
-                            <!-- Exibe o motivo da recusa se houver -->
+                            <!-- Exibe o motivo da recusa -->
                             {% if entrega.status == 'R' %}
                                 <div class="text-danger small mb-2 fw-bold">Motivo: {{ entrega.feedback_professor }}</div>
                             {% endif %}
@@ -114,14 +118,12 @@
                                     <a href="{{ entrega.arquivo_anexo_iv.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Anexo IV">Anexo IV</a>
                                 {% endif %}
                                 
-                                <!-- Botões de Editar e Excluir -->
-                                {% if entrega.status != 'A' %}
+                                <!-- Botões de Editar e Excluir só aparecem se for 'P' (Pendente Prof) ou 'R' (Recusado) -->
+                                {% if entrega.status == 'P' or entrega.status == 'R' %}
                                     <a href="{% url 'editar_documento' entrega.id %}" class="btn btn-sm btn-primary ms-2" title="Editar Arquivos">
                                         <i class="bi bi-pencil-square"></i> Editar
                                     </a>
-                                    
-                                    <!-- Botão de Excluir com confirmação via JavaScript -->
-                                    <a href="{% url 'excluir_documento' entrega.id %}" class="btn btn-sm btn-danger ms-1" title="Excluir Submissão" onclick="return confirm('Tem certeza que deseja excluir todos os documentos deste mês? Esta ação não pode ser desfeita.');">
+                                    <a href="{% url 'excluir_documento' entrega.id %}" class="btn btn-sm btn-danger ms-1" title="Excluir Submissão" onclick="return confirm('Tem certeza que deseja excluir todos os documentos deste mês?');">
                                         <i class="bi bi-trash"></i> Excluir
                                     </a>
                                 {% endif %}

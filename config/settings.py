@@ -122,3 +122,18 @@ STATIC_URL = 'static/'
 import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ==========================================
+# CONFIGURAÇÃO DE ENVIO DE E-MAILS (GMAIL)
+# ==========================================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# SUBSTITUA AQUI PELAS SUAS INFORMAÇÕES
+EMAIL_HOST_USER = 'sigma.monitorias@gmail.com' 
+EMAIL_HOST_PASSWORD = 'oovtadqssqxfujzz'  # Senha do aplicativo do Gmail (não a senha da conta)
+
+# Nome que aparecerá no remetente (Opcional, mas fica profissional)
+DEFAULT_FROM_EMAIL = 'Sistema SIGMA <sigma.monitorias@gmail.com>'

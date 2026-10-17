@@ -5,58 +5,93 @@
     <h3 class="text-secondary">
         <i class="bi bi-clock-history"></i> Histórico do Monitor
     </h3>
-    <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar ao Início</a>
+    <a href="{% url 'meus_monitores' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
 </div>
 
-<div class="card mb-4 border-start border-primary border-4">
+<div class="card mb-4 border-0 shadow-sm border-start border-primary border-4">
     <div class="card-body">
-        <h5 class="card-title">{{ monitoria.monitor.get_full_name }}</h5>
+        <h5 class="card-title fw-bold text-dark"><i class="bi bi-person"></i> {{ monitoria.monitor.get_full_name|default:monitoria.monitor.username }}</h5>
         <p class="card-text text-muted mb-0">
-            <strong>Disciplina:</strong> {{ monitoria.disciplina }} <br>
-            <strong>Curso:</strong> {{ monitoria.curso }}
+            <i class="bi bi-journal-bookmark"></i> <strong>Disciplina:</strong> {{ monitoria.disciplina }} <br>
+            <i class="bi bi-mortarboard"></i> <strong>Curso:</strong> {{ monitoria.curso }}
         </p>
     </div>
 </div>
 
-<div class="card">
+<div class="card shadow-sm border-0">
     <div class="card-header bg-white py-3">
-        <h5 class="mb-0 text-secondary">Documentos Entregues</h5>
+        <h5 class="mb-0 text-secondary"><i class="bi bi-folder2-open"></i> Documentos Entregues</h5>
     </div>
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Mês Ref.</th>
-                    <th>Status</th>
-                    <th>Feedback/Observação</th>
-                    <th>Arquivo</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entrega in entregas %}
-                <tr>
-                    <td>{{ entrega.mes_referencia|date:"F/Y" }}</td>
-                    <td>
-                        {% if entrega.status == 'P' %}<span class="badge bg-warning text-dark">Pendente</span>
-                        {% elif entrega.status == 'A' %}<span class="badge bg-success">Aprovado</span>
-                        {% elif entrega.status == 'R' %}<span class="badge bg-danger">Recusado</span>{% endif %}
-                    </td>
-                    <td><small class="text-muted">{{ entrega.feedback_professor|default:"-" }}</small></td>
-                    <td>
-                        {% if entrega.arquivo_anexo_ii %}
-                        <a href="{{ entrega.arquivo_anexo_ii.url }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-pdf"></i> Ver Anexo</a>
-                        {% else %}
-                        <span class="text-muted small">Sem arquivo</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-4">Este aluno ainda não enviou nenhum documento.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mês Ref.</th>
+                        <th>Status Atual</th>
+                        <th>Ficheiros (Anexos)</th>
+                        <th>Feedback / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in entregas %}
+                    <tr>
+                        <td class="fw-bold text-secondary">{{ entrega.mes_referencia|date:"F / Y"|title }}</td>
+                        <td>
+                            {% if entrega.status == 'P' %}
+                                <span class="badge bg-warning text-dark">Aguardando sua Avaliação</span>
+                                
+                            {% elif entrega.status == 'A' %}
+                                <!-- Alterado: d-flex align-items-center gap-2 para ficar horizontal -->
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-info text-dark">Aguardando Pedagógico</span>
+                                    
+                                    <!-- Alterado: btn-outline-warning, removido o mt-1, texto mais subtil -->
+                                    <form action="{% url 'avaliar_entrega' entrega.id 'reverter' %}" method="POST" onsubmit="return confirm('Deseja cancelar a aprovação e puxar o documento de volta para a sua análise?');" class="m-0 p-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" title="Puxar documento de volta">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Reverter
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                            {% elif entrega.status == 'F' %}
+                                <span class="badge bg-success">Arquivado pelo Pedagógico</span>
+                                
+                            {% elif entrega.status == 'R' %}
+                                <span class="badge bg-danger">Recusado (Aguardando Aluno)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ entrega.arquivo_anexo_ii.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Anexo II"><i class="bi bi-file-earmark-pdf"></i> II</a>
+                                {% if entrega.arquivo_anexo_iii %}
+                                    <a href="{{ entrega.arquivo_anexo_iii.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Anexo III"><i class="bi bi-file-earmark-text"></i> III</a>
+                                {% endif %}
+                                {% if entrega.arquivo_anexo_iv %}
+                                    <a href="{{ entrega.arquivo_anexo_iv.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Anexo IV"><i class="bi bi-file-earmark-check"></i> IV</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if entrega.feedback_professor %}
+                                <small class="text-danger fw-bold">{{ entrega.feedback_professor }}</small>
+                            {% else %}
+                                <small class="text-muted">-</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
+                            Este aluno ainda não enviou nenhum documento.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

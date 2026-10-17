@@ -115,11 +115,17 @@ class AvaliacaoPrograma(models.Model):
     parecer_colegiado = models.TextField() #[cite: 3]
 
 
-class Prazo(models.Model):
-    titulo = models.CharField(max_length=200, verbose_name="Título do Prazo (Ex: Relatório de Maio)")
-    data_limite = models.DateField(verbose_name="Data Limite")
-    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição/Aviso")
-    ativo = models.BooleanField(default=True, verbose_name="Prazo Ativo?")
+class PrazoExcecao(models.Model):
+    MESES = [(i, f'{i:02d}') for i in range(1, 13)]
+    
+    mes_referencia = models.IntegerField(choices=MESES, verbose_name="Mês (Ex: 9 para Setembro)")
+    ano_referencia = models.IntegerField(verbose_name="Ano (Ex: 2026)")
+    nova_data_limite = models.DateField(verbose_name="Nova Data Limite")
+    motivo = models.CharField(max_length=200, help_text="Ex: Feriado prolongado de 7 de Setembro", blank=True)
+
+    class Meta:
+        # Garante que só pode haver uma exceção por mês/ano
+        unique_together = ('mes_referencia', 'ano_referencia')
 
     def __str__(self):
-        return f"{self.titulo} - {self.data_limite.strftime('%d/%m/%Y')}"
+        return f"Exceção de {self.mes_referencia}/{self.ano_referencia} para {self.nova_data_limite.strftime('%d/%m/%Y')}"
