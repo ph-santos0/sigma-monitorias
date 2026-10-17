@@ -35,8 +35,6 @@ cd sigma-monitorias
 
 ### 2. Criar e ativar o ambiente virtual
 
-No Windows (Prompt de Comando):
-
 ```bat
 python -m venv venv
 venv\\Scripts\\activate
@@ -54,7 +52,7 @@ Este comando cria as tabelas e gera automaticamente os usuários fictícios e os
 
 ```bash
 python manage.py migrate
-python manage.py setup_test
+python manage.py setup_teste
 ```
 
 ### 5. Rodar o servidor local
