@@ -388,7 +388,9 @@ def avaliar_entrega(request, entrega_id, acao):
         messages.error(request, 'Você não tem permissão para avaliar este documento.')
         return redirect('meus_monitores')
 
-    monitor = entrega.monitoria.monitor.first_name
+    monitor = entrega.monitoria.monitor
+    nome_monitor = monitor.first_name
+    mes_ref = entrega.mes_referencia.strftime('%m/%Y') if entrega.mes_referencia else 'Mês atual'
 
     # Acção 1: Aprovar
     if acao == 'aprovar':
@@ -396,7 +398,19 @@ def avaliar_entrega(request, entrega_id, acao):
             entrega.status = 'A' # Aprovado pelo Professor, vai para o Pedagógico
             entrega.feedback_professor = '' # Limpa feedbacks antigos, se existirem
             entrega.save()
-            messages.success(request, f'Documentação de {monitor} aprovada e enviada para o Setor Pedagógico!')
+            
+            try:
+                send_mail(
+                    subject=f'[SIGMA] Documentação Aprovada - {entrega.monitoria.disciplina}',
+                    message=f'Olá {nome_monitor},\n\nA sua documentação referente a {mes_ref} foi APROVADA pelo professor {request.user.first_name} e já foi encaminhada para análise do Setor Pedagógico.\n\nAtenciosamente,\nEquipe SIGMA',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[monitor.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
+
+            messages.success(request, f'Documentação de {nome_monitor} aprovada e enviada para o Setor Pedagógico!')
             
     # Acção 2: Recusar (Devolver ao aluno)
     elif acao == 'recusar':
@@ -406,22 +420,39 @@ def avaliar_entrega(request, entrega_id, acao):
                 entrega.status = 'R' # Recusado, volta para o aluno
                 entrega.feedback_professor = motivo
                 entrega.save()
-                messages.warning(request, f'Documentação de {monitor} recusada e devolvida para correção.')
+                
+                try:
+                    send_mail(
+                        subject=f'[SIGMA] Documentação Recusada - Correção Necessária',
+                        message=f'Olá {nome_monitor},\n\nA sua documentação referente a {mes_ref} ({entrega.monitoria.disciplina}) foi RECUSADA pelo professor {request.user.first_name}.\n\nMotivo/Feedback:\n"{motivo}"\n\nPor favor, acesse o sistema SIGMA, faça as correções e reenvie os documentos o mais breve possível.\n\nAtenciosamente,\nEquipe SIGMA',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[monitor.email],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
+
+                messages.warning(request, f'Documentação de {nome_monitor} recusada e devolvida para correção.')
             else:
                 messages.error(request, 'É obrigatório informar o motivo da recusa.')
 
-    # NOVO: Acção 3: Reverter Aprovação (Puxar de volta para o professor)
+    # Acção 3: Reverter Aprovação (Puxar de volta para o professor)
     elif acao == 'reverter':
-        # Só pode reverter se estiver 'A' (Aguardando Pedagógico). Se já estiver 'F' (Arquivado/Finalizado), já é tarde.
         if entrega.status == 'A':
             entrega.status = 'P' # Volta para Pendente na mesa do Professor
             entrega.save()
-            messages.info(request, f'Aprovação revertida! A documentação de {monitor} voltou para a sua caixa de entrada.')
+            messages.info(request, f'Aprovação revertida! A documentação de {nome_monitor} voltou para a sua caixa de entrada.')
         elif entrega.status == 'F':
             messages.error(request, 'Não é possível reverter: O Setor Pedagógico já arquivou e finalizou esta entrega.')
 
-    # Volta para a página de onde o professor veio (o histórico do monitor)
-    return redirect('historico_monitor', monitoria_id=entrega.monitoria.id)
+    # RETORNO DA VIEW (Fica totalmente alinhado à esquerda, fora dos "if/elif" acima)
+    if acao == 'reverter':
+        # Ao reverter do histórico, o professor continua no histórico
+        return redirect('historico_monitor', monitoria_id=entrega.monitoria.id)
+    else:
+        # Ao aprovar/recusar, volta dinamicamente para a tela onde ele estava
+        url_origem = request.META.get('HTTP_REFERER', 'meus_monitores')
+        return redirect(url_origem)
 
 
 @login_required
