@@ -60,12 +60,18 @@
                             </div>
                             
                             <!-- Aprovar / Reprovar -->
-                            <div class="d-flex gap-1 w-100 w-md-auto">
-                                <button type="button" class="btn btn-danger px-4" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}"><i class="bi bi-x-circle"></i> Reprovar</button>
+                            <div class="d-flex gap-2 w-100 w-md-auto">
+                                <!-- Botão Reprovar -->
+                                <button type="button" class="btn btn-danger px-4" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}">
+                                    <i class="bi bi-x-circle"></i> Reprovar
+                                </button>
                                 
-                                <form action="{% url 'processar_auditoria' entrega.id 'aprovar' %}" method="POST" class="d-inline" onsubmit="return confirm('Deseja arquivar esta documentação? O aluno será notificado por e-mail.');">
+                                <!-- Formulário Arquivar (Aprovar Pedagógico) -->
+                                <form action="{% url 'processar_auditoria' entrega.id 'aprovar' %}" method="POST" class="m-0 p-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-success px-4 h-100"><i class="bi bi-check2-all"></i> Arquivar</button>
+                                    <button type="submit" class="btn btn-success px-4 h-100" onclick="return confirm('Deseja arquivar esta documentação? O aluno será notificado por e-mail.');">
+                                        <i class="bi bi-check2-all"></i> Arquivar
+                                    </button>
                                 </form>
                             </div>
                         </div>
