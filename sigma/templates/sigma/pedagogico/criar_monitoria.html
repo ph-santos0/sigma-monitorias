@@ -50,11 +50,10 @@
                             <label class="form-label text-secondary fw-bold small">{{ field.label }}</label>
                             {{ field }}
                             
-                            <!-- NOVO: Link rápido para adicionar Monitor ou Professor -->
+                            <!-- LINK PARA CADASTRAR NOVO USUÁRIO (Professor/Monitor) -->
                             {% if field.name == 'monitor' or field.name == 'professor' %}
                                 <div class="text-end mt-1">
-                                    <!-- Mude 'adicionar_usuario' para o nome correto da sua URL no Django -->
-                                    <a href="#" class="text-decoration-none small text-primary"><i class="bi bi-person-plus-fill"></i> Cadastrar novo {{ field.label|lower }}</a>
+                                    <a href="/pedagogico/usuarios/novo/" class="text-decoration-none small text-primary"><i class="bi bi-person-plus-fill"></i> Cadastrar novo {{ field.label|lower }}</a>
                                 </div>
                             {% endif %}
 
@@ -118,8 +117,8 @@
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-1">
                                         
-                                        <!-- NOVO BOTÃO DE HISTÓRICO (O OLHINHO) -->
-                                        <a href="{% url 'historico_monitor' vinculo.id %}" class="btn btn-sm btn-outline-info" title="Ver Histórico de Entregas">
+                                        <!-- BOTÃO DE HISTÓRICO (O OLHINHO) -->
+                                        <a href="/professor/historico/{{ vinculo.id }}/" class="btn btn-sm btn-outline-info" title="Ver Histórico de Entregas">
                                             <i class="bi bi-eye"></i>
                                         </a>
 

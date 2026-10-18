@@ -625,7 +625,7 @@ def criar_monitoria(request):
         if form.is_valid():
             nova_monitoria = form.save()
             
-            # --- LÓGICA DE E-MAIL (MANTIDA) ---
+            # --- LÓGICA DE E-MAIL ---
             professor = nova_monitoria.professor
             aluno = nova_monitoria.monitor
             disciplina = nova_monitoria.disciplina
@@ -655,7 +655,6 @@ def criar_monitoria(request):
         else:
             # 1. Verifica se existe aquele erro geral (ex: Conflito de Datas)
             if form.non_field_errors():
-                # Pega na primeira mensagem de erro geral e envia para o balão de alerta
                 erro_exato = form.non_field_errors()[0]
                 messages.error(request, erro_exato)
             else:
@@ -666,7 +665,7 @@ def criar_monitoria(request):
         
     contexto = {
         'form': form,
-        'vinculos': vinculos_existentes # Mandamos a lista para o HTML!
+        'vinculos': vinculos_existentes
     }
     return render(request, 'sigma/pedagogico/criar_monitoria.html', contexto)
 
