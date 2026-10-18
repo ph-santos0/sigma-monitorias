@@ -457,7 +457,24 @@ def avaliar_entrega(request, entrega_id, acao):
 
 @login_required
 def historico_monitor(request, monitoria_id):
-    monitoria = get_object_or_404(Monitoria, id=monitoria_id, professor=request.user)
+    # 1. Puxa a monitoria apenas pelo ID (sem restringir logo ao professor)
+    monitoria = get_object_or_404(Monitoria, id=monitoria_id)
+    
+    # 2. Trava de Segurança: Só o Professor dono da monitoria OU o Pedagógico (Admin) podem ver
+    eh_professor_dono = (request.user == monitoria.professor)
+    eh_pedagogico = (request.user.tipo_usuario == 'A' or request.user.is_superuser)
+    
+    if not (eh_professor_dono or eh_pedagogico):
+        messages.error(request, 'Você não tem permissão para aceder ao histórico deste monitor.')
+        # Tenta devolver o usuário não autorizado para o seu painel correspondente
+        if request.user.tipo_usuario == 'P':
+            return redirect('dashboard_professor')
+        elif request.user.tipo_usuario == 'M':
+            return redirect('dashboard_monitor')
+        else:
+            return redirect('login')
+
+    # 3. Se passou pela segurança, carrega as entregas normalmente
     entregas = EntregaMensal.objects.filter(monitoria=monitoria).order_by('-mes_referencia')
     
     contexto = {
