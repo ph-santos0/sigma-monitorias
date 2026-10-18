@@ -701,47 +701,85 @@ def relatorio_mensal(request):
     if not mes or not ano:
         messages.error(request, 'Selecione o mês e o ano para gerar o relatório.')
         return redirect('dashboard_pedagogico')
+        
+    mes = int(mes)
+    ano = int(ano)
 
-    # Busca as entregas do mês especificado, ordenadas pelo nome do monitor
-    entregas = EntregaMensal.objects.filter(
-        mes_referencia__year=ano,
-        mes_referencia__month=mes
-    ).order_by('monitoria__monitor__first_name')
+    # Busca todas as monitorias ativas para cruzar com as entregas
+    monitorias = Monitoria.objects.all()
+    
+    entregas_relatorio = []
+    total_submissoes = 0
+    
+    for monitoria in monitorias:
+        entrega = EntregaMensal.objects.filter(
+            monitoria=monitoria,
+            mes_referencia__year=ano,
+            mes_referencia__month=mes
+        ).first()
+        
+        nome_monitor = monitoria.monitor.get_full_name() or monitoria.monitor.username
+        
+        if entrega:
+            total_submissoes += 1
+            entregas_relatorio.append({
+                'monitor_nome': nome_monitor,
+                'curso': monitoria.curso,
+                'disciplina': monitoria.disciplina,
+                'professor_nome': monitoria.professor.get_full_name(),
+                'alunos_atendidos': entrega.total_alunos_presentes,
+                'status': entrega.status,
+                'status_display': entrega.get_status_display()
+            })
+        else:
+            # Caso o monitor NÃO tenha enviado nada no mês
+            entregas_relatorio.append({
+                'monitor_nome': nome_monitor,
+                'curso': monitoria.curso,
+                'disciplina': monitoria.disciplina,
+                'professor_nome': monitoria.professor.get_full_name(),
+                'alunos_atendidos': '-',
+                'status': 'N',
+                'status_display': 'Não Enviado'
+            })
+            
+    # Ordena alfabeticamente pelo nome do monitor
+    entregas_relatorio = sorted(entregas_relatorio, key=lambda x: x['monitor_nome'])
 
     # OPÇÃO 1: GERAR PLANILHA EXCEL (CSV)
     if formato == 'csv':
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = f'attachment; filename="relatorio_sigma_{mes}_{ano}.csv"'
         
-        # Adiciona o BOM do UTF-8 para o Excel ler os acentos brasileiros (á, ã, ç) corretamente
+        # Adiciona o BOM do UTF-8 para o Excel ler os acentos brasileiros
         response.write(u'\ufeff'.encode('utf8'))
         
         writer = csv.writer(response, delimiter=';')
         writer.writerow(['Monitor', 'Curso', 'Disciplina', 'Orientador', 'Alunos Atendidos', 'Status da Documentação'])
 
-        for e in entregas:
+        for e in entregas_relatorio:
             writer.writerow([
-                e.monitoria.monitor.get_full_name() or e.monitoria.monitor.username,
-                e.monitoria.curso,
-                e.monitoria.disciplina,
-                e.monitoria.professor.get_full_name(),
-                e.total_alunos_presentes,
-                e.get_status_display() # Pega o nome do status (Ex: "Auditado e Arquivado")
+                e['monitor_nome'],
+                e['curso'],
+                e['disciplina'],
+                e['professor_nome'],
+                e['alunos_atendidos'],
+                e['status_display']
             ])
         return response
 
     # OPÇÃO 2: GERAR PDF VIA NAVEGADOR
     meses_nomes = {
-        '1': 'Janeiro', '2': 'Fevereiro', '3': 'Março', '4': 'Abril',
-        '5': 'Maio', '6': 'Junho', '7': 'Julho', '8': 'Agosto',
-        '9': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
+        5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+        9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
     }
     
     contexto = {
-        'entregas': entregas,
-        'mes_nome': meses_nomes.get(mes, mes),
+        'entregas': entregas_relatorio,
+        'mes_nome': meses_nomes.get(mes, str(mes)),
         'ano': ano,
-        'total_entregas': entregas.count(),
+        'total_entregas': total_submissoes, # Conta apenas quem realmente enviou
         'data_hoje': date.today()
     }
     return render(request, 'sigma/pedagogico/relatorio_pdf.html', contexto)

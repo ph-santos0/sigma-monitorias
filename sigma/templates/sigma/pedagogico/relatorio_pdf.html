@@ -14,13 +14,14 @@
             @page { margin: 1.5cm; size: landscape; } /* Modo paisagem para caber a tabela */
             .table-bordered th, .table-bordered td { border: 1px solid #000 !important; }
             .badge { border: 1px solid #000; color: #000 !important; background-color: #fff !important; }
+            .text-danger { color: #dc3545 !important; } /* Mantém o vermelho do "Não Enviado" na impressão */
         }
         
         .cabecalho-oficial { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
     </style>
 </head>
 <body class="p-5" onload="window.print()">
-    <!-- Botão flutuante que desaparece na hora de imprimir (útil se o pop-up de impressão fechar sem querer) -->
+    <!-- Botão flutuante que desaparece na hora de imprimir -->
     <div class="no-print text-center mb-4">
         <button onclick="window.print()" class="btn btn-primary btn-lg"><i class="bi bi-printer"></i> Clique aqui se a janela de impressão não abriu</button>
         <button onclick="window.close()" class="btn btn-secondary btn-lg ms-2">Fechar Relatório</button>
@@ -50,22 +51,24 @@
             {% for entrega in entregas %}
             <tr>
                 <td class="text-center">{{ forloop.counter }}</td>
-                <td class="fw-bold">{{ entrega.monitoria.monitor.get_full_name|default:entrega.monitoria.monitor.username }}</td>
-                <td class="text-center">{{ entrega.monitoria.disciplina }}</td>
-                <td>{{ entrega.monitoria.professor.get_full_name }}</td>
-                <td class="text-center">{{ entrega.total_alunos_presentes }}</td>
+                <td class="fw-bold">{{ entrega.monitor_nome }}</td>
+                <td class="text-center">{{ entrega.disciplina }}</td>
+                <td>{{ entrega.professor_nome }}</td>
+                <td class="text-center">{{ entrega.alunos_atendidos }}</td>
                 <td class="text-center">
-                    {% if entrega.status == 'P' %} Aguardando Prof.
-                    {% elif entrega.status == 'A' %} Aguardando Auditoria
-                    {% elif entrega.status == 'F' %} <span class="fw-bold">Arquivo Validado</span>
-                    {% elif entrega.status == 'R' %} Documento Recusado
+                    {% if entrega.status == 'F' %} 
+                        <span class="fw-bold">Arquivo Validado</span>
+                    {% elif entrega.status == 'N' %}
+                        <span class="fw-bold text-danger">Não Enviado</span>
+                    {% else %}
+                        {{ entrega.status_display }}
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
             <tr>
                 <td colspan="6" class="text-center py-4">
-                    <strong>Nenhum documento de monitoria enviado ou registado no mês de {{ mes_nome }}/{{ ano }}.</strong>
+                    <strong>Nenhuma monitoria ativa registada no sistema.</strong>
                 </td>
             </tr>
             {% endfor %}
