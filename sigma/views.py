@@ -734,8 +734,20 @@ def relatorio_mensal(request):
     mes = int(mes)
     ano = int(ano)
 
-    # Busca todas as monitorias ativas para cruzar com as entregas
-    monitorias = Monitoria.objects.all()
+    # =========================================================
+    # LÓGICA DE FILTRAGEM INTELIGENTE
+    # =========================================================
+    # 1. Descobre o primeiro e o último dia do mês pesquisado
+    primeiro_dia_mes = date(ano, mes, 1)
+    ultimo_dia_mes_num = calendar.monthrange(ano, mes)[1] # Retorna o número de dias no mês (ex: 28, 30, 31)
+    ultimo_dia_mes = date(ano, mes, ultimo_dia_mes_num)
+
+    # 2. Busca APENAS as monitorias que estavam ativas durante este período
+    # (Contrato começou antes ou durante o mês pesquisado E terminou depois ou durante o mês pesquisado)
+    monitorias = Monitoria.objects.filter(
+        data_inicio__lte=ultimo_dia_mes,
+        data_fim__gte=primeiro_dia_mes
+    )
     
     entregas_relatorio = []
     total_submissoes = 0
