@@ -64,7 +64,13 @@
                             <!-- Botões de Ação -->
                             <div class="btn-group">
                                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}" title="Recusar Documentação"><i class="bi bi-x-circle"></i> Recusar</button>
-                                <a href="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" class="btn btn-sm btn-success" title="Aprovar e Enviar ao Pedagógico"><i class="bi bi-check-circle"></i> Aprovar</a>
+                                <!-- COMO DEVE FICAR (CORRETO) -->
+                                <form action="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success" title="Aprovar Documentação">
+                                        <i class="bi bi-check-lg"></i> Aprovar
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </li>
