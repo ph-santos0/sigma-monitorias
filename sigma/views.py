@@ -218,11 +218,26 @@ def dashboard_monitor(request):
         prazo_limite_mes_passado = obter_prazo_do_mes(hoje.year, hoje.month)
         
         entrega_mes_passado = entregas.filter(mes_referencia__year=ano_passado, mes_referencia__month=mes_passado).first()
+        
+        # Lê os alertas gerados no Passo 1. Se tem a palavra "ATRASADA", o atraso é real e validado.
         tem_atraso_real = any("ATRASADA" in aviso for aviso in avisos)
         
-        if not entrega_mes_passado and hoje <= prazo_limite_mes_passado:
-            resumo = {'status': f'Aguardando Envio', 'cor': 'text-warning', 'prazo': prazo_limite_mes_passado.strftime('%d/%m/%Y')}
-        elif entrega_mes_passado:
+        # Se NÃO enviou o mês passado
+        if not entrega_mes_passado:
+            if hoje <= prazo_limite_mes_passado:
+                # O prazo ainda não acabou
+                resumo = {'status': 'Aguardando Envio', 'cor': 'text-warning', 'prazo': prazo_limite_mes_passado.strftime('%d/%m/%Y')}
+            else:
+                # O prazo já acabou! 
+                if tem_atraso_real:
+                    # Se o Passo 1 confirmou que é um atraso (e não apenas um contrato que começou este mês)
+                    resumo = {'status': 'Documentação Atrasada!', 'cor': 'text-danger fw-bold', 'prazo': f"Encerrou em {prazo_limite_mes_passado.strftime('%d/%m/%Y')}"}
+                else:
+                    # Se não tem atraso (ex: o vínculo do monitor começou há poucos dias)
+                    resumo = {'status': 'Novo Vínculo', 'cor': 'text-secondary', 'prazo': 'Aguardando 1º fechamento'}
+                    
+        # Se ENVIOU o mês passado
+        else:
             if entrega_mes_passado.status == 'P':
                 resumo = {'status': 'Aguardando Orientador', 'cor': 'text-primary', 'prazo': 'Em análise inicial'}
             elif entrega_mes_passado.status == 'A':
@@ -230,9 +245,7 @@ def dashboard_monitor(request):
             elif entrega_mes_passado.status == 'F':
                 resumo = {'status': 'Tudo em dia!', 'cor': 'text-success', 'prazo': 'Auditado e arquivado'}
             elif entrega_mes_passado.status == 'R':
-                resumo = {'status': 'Recusado (Ajuste Necessário)', 'cor': 'text-danger', 'prazo': 'Ajuste Imediato'}
-        else:
-            resumo = {'status': 'Em andamento', 'cor': 'text-secondary', 'prazo': '-'}
+                resumo = {'status': 'Recusado (Ajuste Necessário)', 'cor': 'text-danger fw-bold', 'prazo': 'Ajuste Imediato'}
 
         # =================================================================
         # 3. TAGS NA TABELA E RECUSAS (Sempre no topo da lista)
