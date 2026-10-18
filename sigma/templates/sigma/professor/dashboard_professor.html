@@ -62,17 +62,20 @@
                             </div>
                             
                             <!-- Botões de Ação -->
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}" title="Recusar Documentação"><i class="bi bi-x-circle"></i> Recusar</button>
-                                <!-- COMO DEVE FICAR (CORRETO) -->
-                                <form action="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" method="POST" style="display: inline;">
+                            <div class="d-flex gap-1 justify-content-end">
+                                <!-- Botão Recusar -->
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}" title="Recusar Documentação">
+                                    <i class="bi bi-x-circle"></i> Recusar
+                                </button>
+                                
+                                <!-- Formulário Aprovar -->
+                                <form action="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" method="POST" class="m-0 p-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success" title="Aprovar Documentação">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Aprovar Documentação" onclick="return confirm('Tem certeza que deseja aprovar esta documentação?');">
                                         <i class="bi bi-check-lg"></i> Aprovar
                                     </button>
                                 </form>
-                            </div>
-                        </div>
+                            </div>S
                     </li>
 
                     <!-- Modal de Recusa Específico para esta Entrega -->

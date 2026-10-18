@@ -61,12 +61,18 @@
                             </div>
                             
                             <!-- Botões de Aprovar/Recusar -->
-                            <div class="d-flex gap-1 w-100 w-md-auto">
-                                <button type="button" class="btn btn-danger px-4" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}"><i class="bi bi-x-circle"></i> Recusar</button>
+                            <div class="d-flex gap-2 w-100 w-md-auto">
+                                <!-- Botão Recusar -->
+                                <button type="button" class="btn btn-danger px-4" data-bs-toggle="modal" data-bs-target="#modalRecusa{{ entrega.id }}">
+                                    <i class="bi bi-x-circle"></i> Recusar
+                                </button>
                                 
-                                <form action="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" method="POST" class="d-inline" onsubmit="return confirm('Tem a certeza que deseja aprovar e encaminhar esta documentação para o Pedagógico?');">
+                                <!-- Formulário Aprovar -->
+                                <form action="{% url 'avaliar_entrega' entrega.id 'aprovar' %}" method="POST" class="m-0 p-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-success px-4 h-100"><i class="bi bi-check-circle"></i> Aprovar</button>
+                                    <button type="submit" class="btn btn-success px-4 h-100" onclick="return confirm('Tem a certeza que deseja aprovar e encaminhar esta documentação para o Pedagógico?');">
+                                        <i class="bi bi-check-circle"></i> Aprovar
+                                    </button>
                                 </form>
                             </div>
                             
