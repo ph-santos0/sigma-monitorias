@@ -5,8 +5,28 @@
     <h3 class="text-secondary">
         <i class="bi bi-clock-history"></i> Histórico do Monitor
     </h3>
-    <a href="{% url 'meus_monitores' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
+    
+    <!-- Botão Voltar Inteligente -->
+    {% if request.user.tipo_usuario == 'P' %}
+        <a href="{% url 'meus_monitores' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
+    {% else %}
+        <a href="{% url 'criar_monitoria' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
+    {% endif %}
 </div>
+
+<!-- Alertas do Sistema -->
+{% if messages %}
+    <div class="mb-4">
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0 border-start border-4 border-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+            {% if message.tags == 'error' %}<i class="bi bi-exclamation-octagon-fill text-danger fs-5 me-2" style="vertical-align: middle;"></i> 
+            {% elif message.tags == 'success' %}<i class="bi bi-check-circle-fill text-success fs-5 me-2" style="vertical-align: middle;"></i>{% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
 
 <div class="card mb-4 border-0 shadow-sm border-start border-primary border-4">
     <div class="card-body">
@@ -38,26 +58,39 @@
                     <tr>
                         <td class="fw-bold text-secondary">{{ entrega.mes_referencia|date:"F / Y"|title }}</td>
                         <td>
+                            <!-- STATUS: PENDENTE PROFESSOR -->
                             {% if entrega.status == 'P' %}
-                                <span class="badge bg-warning text-dark">Aguardando sua Avaliação</span>
+                                {% if request.user.tipo_usuario == 'P' %}
+                                    <span class="badge bg-warning text-dark">Aguardando sua Avaliação</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Aguardando Prof. Orientador</span>
+                                {% endif %}
                                 
+                            <!-- STATUS: AGUARDANDO PEDAGÓGICO -->
                             {% elif entrega.status == 'A' %}
-                                <!-- Alterado: d-flex align-items-center gap-2 para ficar horizontal -->
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-info text-dark">Aguardando Pedagógico</span>
+                                    {% if request.user.tipo_usuario == 'A' %}
+                                        <span class="badge bg-info text-dark">Aguardando sua Auditoria</span>
+                                    {% else %}
+                                        <span class="badge bg-info text-dark">Aguardando Pedagógico</span>
+                                    {% endif %}
                                     
-                                    <!-- Alterado: btn-outline-warning, removido o mt-1, texto mais subtil -->
-                                    <form action="{% url 'avaliar_entrega' entrega.id 'reverter' %}" method="POST" onsubmit="return confirm('Deseja cancelar a aprovação e puxar o documento de volta para a sua análise?');" class="m-0 p-0">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" title="Puxar documento de volta">
-                                            <i class="bi bi-arrow-counterclockwise"></i> Reverter
-                                        </button>
-                                    </form>
+                                    <!-- Apenas o Professor vê o botão de reverter -->
+                                    {% if request.user.tipo_usuario == 'P' %}
+                                        <form action="{% url 'avaliar_entrega' entrega.id 'reverter' %}" method="POST" onsubmit="return confirm('Deseja cancelar a aprovação e puxar o documento de volta para a sua análise?');" class="m-0 p-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" title="Puxar documento de volta">
+                                                <i class="bi bi-arrow-counterclockwise"></i> Reverter
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                                 
+                            <!-- STATUS: FINALIZADO / ARQUIVADO -->
                             {% elif entrega.status == 'F' %}
                                 <span class="badge bg-success">Arquivado pelo Pedagógico</span>
                                 
+                            <!-- STATUS: RECUSADO PELO PROFESSOR -->
                             {% elif entrega.status == 'R' %}
                                 <span class="badge bg-danger">Recusado (Aguardando Aluno)</span>
                             {% endif %}
