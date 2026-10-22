@@ -5,7 +5,7 @@
     body { background: linear-gradient(90deg, #5c5c5c 50%, #f4f6f9 50%); }
     .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     .login-card { border-radius: 4px; border: 1px solid #ddd; max-width: 450px; width: 100%; padding: 40px; background-color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .suap-input { background-color: #fffde7; border: 1px solid #ced4da; } /* Cor amarelada do SUAP */
+    .suap-input { background-color: #fffde7; border: 1px solid #ced4da; } 
     .suap-input:focus { background-color: #fffde7; border-color: #28a745; box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25); }
     .brand-title { font-size: 3.5rem; font-weight: 300; color: #888; text-align: center; margin-bottom: 5px; }
     .brand-subtitle { font-size: 0.9rem; color: #666; text-align: center; margin-bottom: 30px; letter-spacing: 1px; }
@@ -32,12 +32,34 @@
                 <label for="password" class="form-label text-muted small">Senha:</label>
                 <div class="input-group">
                     <input type="password" class="form-control suap-input" id="password" name="password" required>
-                    <button class="btn btn-outline-secondary bg-white" type="button"><i class="bi bi-eye"></i></button>
+                    <!-- CLASSES CORRIGIDAS: Removemos o outline problemático e usamos borda padrão com fundo branco -->
+                    <button class="btn border bg-white text-secondary" type="button" id="togglePassword">
+                        <i class="bi bi-eye"></i>
+                    </button>
                 </div>
-                    <a href="{% url 'password_reset' %}"  class="text-decoration-none small" class="text-center mt-3">Esqueceu a senha?</a>
+                <div class="mt-2 text-end">
+                    <a href="{% url 'password_reset' %}" class="text-decoration-none small text-muted">Esqueceu a senha?</a>
+                </div>
             </div>
             <button type="submit" class="btn btn-success w-100 py-2 fs-5">Acessar</button>
         </form>
     </div>
 </div>
+
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash'); 
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye'); 
+        }
+    });
+</script>
 {% endblock %}

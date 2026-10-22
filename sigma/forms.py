@@ -105,17 +105,17 @@ class MonitoriaForm(forms.ModelForm):
                 self.add_error('data_fim', "Não é possível registrar um vínculo cuja vigência já terminou no passado.")
 
         # ---------------------------------------------------------
-        # REGRA: Prevenção de Sobreposição de Datas (Conflito)
+        # REGRA: Prevenção de Sobreposição de Datas (Conflito Geral)
         # ---------------------------------------------------------
-        if monitor and disciplina and data_inicio and data_fim:
+        if monitor and data_inicio and data_fim:
             
             # A matemática da sobreposição de datas:
             # Duas datas cruzam-se se: o Início de A <= Fim de B, E o Fim de A >= Início de B
+            # Removemos o filtro de disciplina. Agora verifica qualquer vínculo do aluno.
             vinculos_conflitantes = Monitoria.objects.filter(
                 monitor=monitor,
-                disciplina__iexact=disciplina,
-                data_inicio__lte=data_fim, # Começou antes do nosso término
-                data_fim__gte=data_inicio  # Terminou depois do nosso início
+                data_inicio__lte=data_fim, 
+                data_fim__gte=data_inicio  
             )
             
             # Se for uma edição, excluímos o próprio vínculo da verificação
@@ -123,12 +123,13 @@ class MonitoriaForm(forms.ModelForm):
                 vinculos_conflitantes = vinculos_conflitantes.exclude(pk=self.instance.pk)
 
             if vinculos_conflitantes.exists():
+                conflito = vinculos_conflitantes.first()
                 mensagem_erro = (
-                    f"CONFLITO DE DATAS: O estudante {monitor.first_name} já possui uma monitoria "
-                    f"na disciplina de '{disciplina}' que entra em conflito com este período de datas. "
-                    "Verifique se está a inserir as datas corretas para o novo semestre."
+                    f"CONFLITO DE DATAS: O estudante {monitor.first_name} já possui uma monitoria ativa "
+                    f"na disciplina '{conflito.disciplina}' ({conflito.data_inicio.strftime('%d/%m/%Y')} "
+                    f"a {conflito.data_fim.strftime('%d/%m/%Y')}). Um monitor não pode acumular vínculos no mesmo período."
                 )
-                raise ValidationError(mensagem_erro)
+                self.add_error('monitor', mensagem_erro)
 
         return cleaned_data
 
