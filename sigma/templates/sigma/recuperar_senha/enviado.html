@@ -1,0 +1,18 @@
+{% extends 'sigma/base.html' %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 text-center">
+        <div class="card shadow-sm border-0 border-top border-success border-4 py-4">
+            <div class="card-body">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h4 class="fw-bold mt-3">E-mail Enviado!</h4>
+                <p class="text-muted mt-2">
+                    Se existir uma conta associada ao e-mail que introduziu, receberá em breve um link para redefinir a sua palavra-passe.
+                </p>
+                <p class="small text-secondary">Por favor, verifique também a sua pasta de Spam ou Lixo Eletrónico.</p>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary mt-3">Voltar ao Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

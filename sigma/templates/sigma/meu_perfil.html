@@ -46,6 +46,7 @@
                 <!-- Formulário de Atualização -->
                 <form method="POST">
                     {% csrf_token %}
+                    <input type="hidden" name="atualizar_perfil" value="1">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold text-secondary">Nome</label>
@@ -80,6 +81,7 @@
                 
                 <form method="POST">
                     {% csrf_token %}
+                    <input type="hidden" name="alterar_senha" value="1">
                     {% for field in form_senha %}
                         <div class="mb-3">
                             <label class="form-label fw-bold text-secondary">{{ field.label }}</label>

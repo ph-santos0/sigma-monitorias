@@ -30,7 +30,7 @@
             <div class="card-header bg-white pt-3 border-0">
                 <h5 class="{% if editando %}text-primary{% else %}text-success{% endif %} fw-bold mb-0">
                     <i class="bi {% if editando %}bi-pencil-square{% else %}bi-file-earmark-plus{% endif %}"></i> 
-                    {% if editando %}Atualizar Dados de {{ monitoria.monitor.first_name }}{% else %}Novo Vínculo{% endif %}
+                    {% if editando %}Atualizar Dados de monitoria{% else %}Novo Vínculo{% endif %}
                 </h5>
             </div>
             <div class="card-body p-4">

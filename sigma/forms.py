@@ -1,8 +1,11 @@
 from django import forms
 from .models import Usuario, Monitoria, PrazoExcecao, AtendimentoDiario, EntregaMensal
-from datetime import date
+from datetime import date, datetime
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+
+from django.contrib.auth.forms import PasswordResetForm
+from django.core.exceptions import ValidationError
 
 # ==========================================
 # FORMULÁRIO DE CRIAÇÃO DE USUÁRIOS
@@ -18,6 +21,8 @@ class UsuarioCreationForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
         self.fields['tipo_usuario'].widget.attrs['class'] = 'form-select'
+        self.fields['email'].required = True
+        self.fields['first_name'].required = True
 
 
 # ==========================================
@@ -144,11 +149,8 @@ class AtendimentoDiarioForm(forms.ModelForm):
         }
 
 class EntregaMensalForm(forms.ModelForm):
-    mes_referencia = forms.DateField(
-        widget=forms.DateInput(format='%Y-%m', attrs={'type': 'month', 'class': 'form-control'}),
-        input_formats=['%Y-%m']
-    )
-
+    # ⚠️ A linha antiga 'mes_referencia = forms.DateField(...)' DEVE SER APAGADA!
+    
     class Meta:
         model = EntregaMensal
         fields = ['mes_referencia', 'total_alunos_presentes', 'arquivo_anexo_ii', 'arquivo_anexo_iii', 'arquivo_anexo_iv']
@@ -160,10 +162,62 @@ class EntregaMensalForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # Extrai a monitoria que a View nos vai enviar
+        monitoria = kwargs.pop('monitoria', None)
         super().__init__(*args, **kwargs)
+        
         self.fields['arquivo_anexo_ii'].required = True
         self.fields['arquivo_anexo_iii'].required = True
         self.fields['arquivo_anexo_iv'].required = True
+
+        hoje = date.today()
+        choices = []
+        meses_nomes = {
+            1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
+            5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+            9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+        }
+        meses_gerados = []
+
+        if monitoria:
+            # O limite máximo para envio é o mês atual OU o fim do contrato (o que ocorrer primeiro)
+            limite_max = hoje if hoje < monitoria.data_fim else monitoria.data_fim
+            ano = limite_max.year
+            mes = limite_max.month
+            
+            data_minima = date(monitoria.data_inicio.year, monitoria.data_inicio.month, 1)
+            data_iter = date(ano, mes, 1)
+
+            # Vai voltando 1 mês no tempo até chegar ao mês de início do contrato
+            while data_iter >= data_minima:
+                valor_str = f"{data_iter.year}-{data_iter.month:02d}-01"
+                texto = f"{meses_nomes[data_iter.month]} de {data_iter.year}"
+                choices.append((valor_str, texto))
+                meses_gerados.append(valor_str)
+
+                mes -= 1
+                if mes == 0:
+                    mes = 12
+                    ano -= 1
+                data_iter = date(ano, mes, 1)
+        else:
+            # Fallback de segurança caso a View não envie a monitoria
+            choices = [(f"{hoje.year}-{hoje.month:02d}-01", f"{meses_nomes[hoje.month]} de {hoje.year}")]
+
+        # Proteção para edição de entregas antigas (garante que o mês já salvo aparece na lista)
+        if self.instance and self.instance.pk and self.instance.mes_referencia:
+            data_inst = self.instance.mes_referencia
+            valor_inst = f"{data_inst.year}-{data_inst.month:02d}-01"
+            if valor_inst not in meses_gerados:
+                texto_inst = f"{meses_nomes[data_inst.month]} de {data_inst.year}"
+                choices.insert(0, (valor_inst, texto_inst))
+
+        self.fields['mes_referencia'] = forms.TypedChoiceField(
+            choices=choices,
+            coerce=lambda d: datetime.strptime(d, '%Y-%m-%d').date(),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            label="Mês de Referência"
+        )
 
 
 # ==========================================
@@ -216,3 +270,18 @@ class UsuarioAdminUpdateForm(forms.ModelForm):
             'username': 'Matrícula / SIAPE (Login)',
             'tipo_usuario': 'Perfil de Acesso'
         }
+
+class RecuperarSenhaForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Aplica a classe do Bootstrap diretamente no campo para não quebrar o layout
+        self.fields['email'].widget.attrs.update({'class': 'form-control mt-1'})
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        
+        # Verifica se o e-mail existe na base de dados
+        if not Usuario.objects.filter(email=email).exists():
+            raise ValidationError("Não encontrámos nenhuma conta associada a este endereço de e-mail.")
+            
+        return email

@@ -140,5 +140,23 @@
         </div>
     </div>
 </div>
+{% else %}
+<!-- TELA PARA ALUNO SEM VÍNCULO -->
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 text-center">
+        <div class="card shadow-sm border-0 border-top border-warning border-4 py-5">
+            <div class="card-body">
+                <i class="bi bi-clipboard-x text-warning opacity-75" style="font-size: 4rem;"></i>
+                <h4 class="mt-4 text-secondary fw-bold">Nenhum vínculo de monitoria encontrado</h4>
+                <p class="text-muted fs-5 mt-3 mb-1">
+                    Você ainda não está alocado a nenhuma disciplina neste semestre.
+                </p>
+                <p class="text-muted small">
+                    Aguarde o <strong>Setor Pedagógico</strong> realizar o seu cadastro no sistema. Assim que o seu vínculo for criado, o seu painel será liberado automaticamente.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endif %}
 {% endblock %}

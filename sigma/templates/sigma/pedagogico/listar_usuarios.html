@@ -37,8 +37,14 @@
                 </thead>
                 <tbody>
                     {% for u in usuarios %}
-                    <tr>
-                        <td class="fw-bold text-dark">{{ u.get_full_name|default:u.username }}</td>
+                    <!-- Adicionamos uma classe condicional para deixar a linha acinzentada se o utilizador estiver desativado -->
+                    <tr class="{% if not u.is_active %}opacity-50 bg-light{% endif %}">
+                        <td class="fw-bold text-dark">
+                            {{ u.get_full_name|default:u.username }}
+                            {% if not u.is_active %}
+                                <span class="badge bg-danger ms-1" style="font-size: 0.65rem;">DESATIVADO</span>
+                            {% endif %}
+                        </td>
                         <td class="text-muted">{{ u.username }}</td>
                         <td><a href="mailto:{{ u.email }}" class="text-decoration-none">{{ u.email }}</a></td>
                         <td>
@@ -52,13 +58,43 @@
                                 <span class="badge bg-dark"><i class="bi bi-gear-fill"></i> Administrador (TI)</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">
-                            {% if not u.is_superuser %}
-                                <a href="{% url 'editar_usuario' u.id %}" class="btn btn-sm btn-outline-primary" title="Editar Usuário">
-                                    <i class="bi bi-pencil-square"></i> Editar
-                                </a>
-                            {% endif %}
-                        </td>
+                            <td class="text-end">
+                                {% if not u.is_superuser %}
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <!-- Botão de Editar -->
+                                        <a href="{% url 'editar_usuario' u.id %}" class="btn btn-sm btn-outline-primary" title="Editar Usuário">
+                                            <i class="bi bi-pencil-square"></i> Editar
+                                        </a>
+
+                                        <!-- Ações Restritas (Não pode fazer na própria conta) -->
+                                        {% if u != request.user %}
+                                            
+                                            <!-- Formulário: Alternar Status (Desativar/Reativar) -->
+                                            <form action="{% url 'alternar_status_usuario' u.id %}" method="POST" class="m-0 p-0">
+                                                {% csrf_token %}
+                                                {% if u.is_active %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Bloquear Acesso" onclick="return confirm('Tem a certeza que deseja DESATIVAR o acesso de {{ u.first_name }}?');">
+                                                        <i class="bi bi-person-dash-fill"></i> Desativar
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Restaurar Acesso" onclick="return confirm('Deseja REATIVAR o acesso de {{ u.first_name }}?');">
+                                                        <i class="bi bi-person-check-fill"></i> Reativar
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+
+                                            <!-- Formulário: Exclusão Permanente -->
+                                            <form action="{% url 'excluir_usuario' u.id %}" method="POST" class="m-0 p-0">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir Permanentemente" onclick="return confirm('ALERTA DE EXCLUSÃO!\n\nTem a certeza que deseja EXCLUIR {{ u.first_name }} da base de dados? Esta ação não pode ser desfeita.');">
+                                                    <i class="bi bi-trash3"></i> Excluir
+                                                </button>
+                                            </form>
+                                            
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </td>
                     </tr>
                     {% empty %}
                     <tr>

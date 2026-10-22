@@ -1,0 +1,15 @@
+{% extends 'sigma/base.html' %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 text-center">
+        <div class="card shadow-sm border-0 border-top border-success border-4 py-4">
+            <div class="card-body">
+                <i class="bi bi-unlock-fill text-success" style="font-size: 4rem;"></i>
+                <h4 class="fw-bold mt-3">Palavra-passe Atualizada</h4>
+                <p class="text-muted mt-2">A sua palavra-passe foi redefinida com sucesso. Já pode aceder ao sistema com a sua nova credencial.</p>
+                <a href="{% url 'login' %}" class="btn btn-success mt-3 px-5">Ir para o Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -46,6 +46,7 @@ from django.contrib import messages
 from .models import Monitoria
 from .forms import MonitoriaForm
 
+from django.db.models import ProtectedError
 
 def obter_prazo_do_mes(ano, mes):
     """
@@ -114,42 +115,40 @@ def logout_view(request):
 
 @login_required
 def meu_perfil(request):
-    # Essa tela serve para todos os usuários (Monitor, Professor e Pedagógico)
-    return render(request, 'sigma/meu_perfil.html')
+    # 1. Declaramos os dois formulários logo de início.
+    # Isto garante que as variáveis SEMPRE existem na memória, eliminando o UnboundLocalError.
+    form_perfil = UsuarioUpdateForm(instance=request.user)
+    form_senha = PasswordChangeForm(request.user)
 
-@login_required
-def meu_perfil(request):
     if request.method == 'POST':
-        # Se o utilizador clicou no botão de atualizar os dados
+        # 2. Se a requisição veio do formulário de Perfil
         if 'atualizar_perfil' in request.POST:
+            # Substitui a variável inicial pelos dados preenchidos no ecrã
             form_perfil = UsuarioUpdateForm(request.POST, instance=request.user)
-            form_senha = PasswordChangeForm(request.user)
             if form_perfil.is_valid():
                 form_perfil.save()
                 messages.success(request, 'Os seus dados foram atualizados com sucesso!')
                 return redirect('meu_perfil')
                 
-        # Se o utilizador clicou no botão de alterar a palavra-passe
+        # 3. Se a requisição veio do formulário de Senha
         elif 'alterar_senha' in request.POST:
-            form_perfil = UsuarioUpdateForm(instance=request.user)
+            # Substitui a variável inicial pelos dados preenchidos no ecrã
             form_senha = PasswordChangeForm(request.user, request.POST)
             if form_senha.is_valid():
                 user = form_senha.save()
-                # Esta linha impede que o utilizador seja deslogado após mudar a password
-                update_session_auth_hash(request, user) 
+                update_session_auth_hash(request, user) # Mantém o utilizador logado
                 messages.success(request, 'Palavra-passe alterada com segurança!')
                 return redirect('meu_perfil')
             else:
-                messages.error(request, 'Erro ao alterar a palavra-passe. Verifique se os campos coincidem e se a senha é forte o suficiente.')
-    else:
-        form_perfil = UsuarioUpdateForm(instance=request.user)
-        form_senha = PasswordChangeForm(request.user)
+                messages.error(request, 'Erro ao alterar a palavra-passe. Verifique os campos assinalados.')
 
-    return render(request, 'sigma/meu_perfil.html', {
+    # 4. Se houver um erro de validação nos formulários, o código ignora os 'redirects'
+    # e chega até aqui. Os formulários, já preenchidos e com os erros registados, são passados para o HTML.
+    contexto = {
         'form_perfil': form_perfil,
         'form_senha': form_senha
-    })
-
+    }
+    return render(request, 'sigma/meu_perfil.html', contexto)
 
 
 # =====================================================================
@@ -279,34 +278,42 @@ def enviar_documento(request):
     if request.user.tipo_usuario != 'M':
         return redirect('login')
 
+    # Encontra o vínculo ativo do aluno
     monitoria = Monitoria.objects.filter(monitor=request.user).first()
+    
+    if not monitoria:
+        messages.error(request, 'Não possui nenhum vínculo de monitoria ativo no momento.')
+        return redirect('dashboard_monitor')
 
     if request.method == 'POST':
-        form = EntregaMensalForm(request.POST, request.FILES)
+        # 1. É CRÍTICO que o argumento monitoria=monitoria esteja presente no POST
+        form = EntregaMensalForm(request.POST, request.FILES, monitoria=monitoria)
+        
         if form.is_valid():
-            # 1. Pega a data informada no formulário
             data_informada = form.cleaned_data['mes_referencia']
-            
-            # 2. Força a data para o dia 1º do mês selecionado
             mes_normalizado = data_informada.replace(day=1)
-            
-            # 3. TRAVA ABSOLUTA: Verifica a igualdade exata da data normalizada
+
+            # Verifica se já existe um envio para este mês
             if EntregaMensal.objects.filter(monitoria=monitoria, mes_referencia=mes_normalizado).exists():
-                messages.error(request, f'Você já fez uma submissão para o mês {mes_normalizado.strftime("%m/%Y")}. Utilize o botão "Editar" na tela inicial para fazer alterações.')
+                messages.error(request, 'Você já enviou a documentação correspondente a este mês.')
+            else:
+                entrega = form.save(commit=False)
+                entrega.monitoria = monitoria
+                entrega.mes_referencia = mes_normalizado
+                entrega.status = 'P'
+                entrega.save()
+                
+                messages.success(request, 'Documentos enviados com sucesso para a avaliação do Professor!')
                 return redirect('dashboard_monitor')
-
-            entrega = form.save(commit=False)
-            entrega.monitoria = monitoria
-            entrega.mes_referencia = mes_normalizado # Salva sempre como dia 1
-            entrega.status = 'P'
-            entrega.save()
-            
-            messages.success(request, 'Documentos submetidos com sucesso!')
-            return redirect('dashboard_monitor')
     else:
-        form = EntregaMensalForm()
+        # 2. O argumento monitoria=monitoria no carregamento inicial da página
+        form = EntregaMensalForm(monitoria=monitoria)
 
-    return render(request, 'sigma/monitor/enviar_documento.html', {'form': form, 'monitoria': monitoria, 'editando': False})
+    contexto = {
+        'form': form,
+        'monitoria': monitoria
+    }
+    return render(request, 'sigma/monitor/enviar_documento.html', contexto)
 
 @login_required
 def editar_documento(request, entrega_id):
@@ -315,33 +322,40 @@ def editar_documento(request, entrega_id):
 
     entrega = get_object_or_404(EntregaMensal, id=entrega_id, monitoria__monitor=request.user)
     
+    # Extraímos a monitoria a partir da entrega atual
+    monitoria = entrega.monitoria 
+    
     if entrega.status in ['A', 'F']:
         messages.error(request, 'Documentos já em posse do setor pedagógico ou arquivados não podem ser alterados.')
         return redirect('dashboard_monitor')
 
     if request.method == 'POST':
-        form = EntregaMensalForm(request.POST, request.FILES, instance=entrega)
+        # 1. Adicionamos monitoria=monitoria DENTRO dos parênteses do formulário
+        form = EntregaMensalForm(request.POST, request.FILES, instance=entrega, monitoria=monitoria)
+        
         if form.is_valid():
-            # 1. Normaliza a data editada para o dia 1º
+            # Normaliza a data editada para o dia 1º
             data_informada = form.cleaned_data['mes_referencia']
             mes_normalizado = data_informada.replace(day=1)
             
-            # 2. Trava garantindo que ele não editou a data para bater com outro mês que já existe
+            # Trava garantindo que ele não editou a data para bater com outro mês que já existe
             if EntregaMensal.objects.filter(monitoria=entrega.monitoria, mes_referencia=mes_normalizado).exclude(id=entrega.id).exists():
                 messages.error(request, 'Você já possui outra submissão separada para este mês. Edite a submissão correta.')
-                return render(request, 'sigma/monitor/enviar_documento.html', {'form': form, 'monitoria': entrega.monitoria, 'editando': True})
+                return render(request, 'sigma/monitor/enviar_documento.html', {'form': form, 'monitoria': monitoria, 'editando': True})
 
             entrega_salva = form.save(commit=False)
-            entrega_salva.mes_referencia = mes_normalizado # Salva sempre como dia 1
-            entrega_salva.status = 'P' # Volta para Pendente
+            entrega_salva.mes_referencia = mes_normalizado
+            entrega_salva.status = 'P'
             entrega_salva.save()
             
             messages.success(request, 'Documento atualizado e reenviado!')
             return redirect('dashboard_monitor')
     else:
-        form = EntregaMensalForm(instance=entrega)
+        # 2. Adicionamos monitoria=monitoria DENTRO dos parênteses aqui também
+        form = EntregaMensalForm(instance=entrega, monitoria=monitoria)
 
-    return render(request, 'sigma/monitor/enviar_documento.html', {'form': form, 'monitoria': entrega.monitoria, 'editando': True})
+    # Certifique-se de que o render final está aqui para a página carregar (caso não estivesse no seu código original)
+    return render(request, 'sigma/monitor/enviar_documento.html', {'form': form, 'monitoria': monitoria, 'editando': True})
 
 @login_required
 def excluir_documento(request, entrega_id):
@@ -824,6 +838,77 @@ def relatorio_mensal(request):
         'data_hoje': date.today()
     }
     return render(request, 'sigma/pedagogico/relatorio_pdf.html', contexto)
+
+@login_required
+@require_POST
+def alternar_status_usuario(request, usuario_id):
+    # Proteção: Apenas Pedagógico ou Superuser
+    if request.user.tipo_usuario != 'A' and not request.user.is_superuser:
+        return redirect('login')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    # Trava de segurança: impedir que o administrador desative a própria conta por engano
+    if usuario == request.user:
+        messages.error(request, "Ação bloqueada: Você não pode desativar a sua própria conta.")
+    else:
+        if usuario.is_active:
+            usuario.is_active = False
+            messages.success(request, f"O utilizador {usuario.first_name} foi DESATIVADO. Ele já não consegue aceder ao sistema.")
+        else:
+            usuario.is_active = True
+            messages.success(request, f"O acesso de {usuario.first_name} foi REATIVADO com sucesso.")
+        
+        usuario.save()
+
+    # Mude 'listar_usuarios' para o nome correto da sua URL que mostra a tabela de utilizadores
+    return redirect('listar_usuarios')
+
+@login_required
+@require_POST
+def excluir_usuario(request, usuario_id):
+    # Proteção: Apenas Pedagógico ou Superuser
+    if request.user.tipo_usuario != 'A' and not request.user.is_superuser:
+        return redirect('login')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    # 1. Trava de segurança: impedir auto-exclusão
+    if usuario == request.user:
+        messages.error(request, "Ação bloqueada: Você não pode excluir a sua própria conta.")
+        return redirect('listar_usuarios')
+        
+    # 2. Trava de segurança: impedir exclusão do Administrador (TI)
+    if usuario.is_superuser:
+        messages.error(request, "Ação bloqueada: Não é possível excluir um Administrador de TI do sistema.")
+        return redirect('listar_usuarios')
+
+    # ==============================================================
+    # 3. NOVA TRAVA: Verificação manual de vínculos (Monitorias)
+    # ==============================================================
+    # Verifica se o utilizador está associado a alguma monitoria (seja como monitor ou orientador)
+    tem_vinculo_monitor = Monitoria.objects.filter(monitor=usuario).exists()
+    tem_vinculo_professor = Monitoria.objects.filter(professor=usuario).exists()
+    
+    if tem_vinculo_monitor or tem_vinculo_professor:
+        messages.error(
+            request, 
+            f"OPERAÇÃO CANCELADA: Não é possível excluir '{usuario.first_name}' pois ele possui vínculos de monitoria registados no sistema. "
+            f"Para revogar o acesso, utilize o botão 'Desativar'."
+        )
+        return redirect('listar_usuarios')
+
+    # ==============================================================
+    # Se passou por todas as travas, exclui em segurança
+    # ==============================================================
+    try:
+        nome = usuario.first_name
+        usuario.delete()
+        messages.success(request, f"O utilizador {nome} foi excluído permanentemente do sistema.")
+    except Exception as e:
+        messages.error(request, f"Ocorreu um erro inesperado ao tentar excluir o utilizador: {e}")
+
+    return redirect('listar_usuarios')
 
 # ==========================================
 # AUDITORIA DE DOCUMENTOS (PEDAGÓGICO)
