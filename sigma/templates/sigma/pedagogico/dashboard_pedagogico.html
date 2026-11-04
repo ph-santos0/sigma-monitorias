@@ -87,23 +87,23 @@
             <div class="d-flex flex-column gap-2">
                 
                 <!-- Botão 1: Lembrete Preventivo (Amarelo) -->
-                <form action="{% url 'notificar_atrasados' %}" method="POST" onsubmit="return confirm('Deseja enviar um LEMBRETE amigável para todos os alunos que ainda não enviaram a documentação deste mês?');">
+                <form action="{% url 'notificar_atrasados' %}" method="POST" class="m-0 p-0">
                     {% csrf_token %}
                     <input type="hidden" name="tipo_notificacao" value="aviso">
-                    <button type="submit" class="btn btn-warning shadow-sm fw-bold w-100 text-start">
+                    <button type="submit" class="btn btn-warning shadow-sm fw-bold w-100 text-start" onclick="return confirm('Deseja enviar um LEMBRETE amigável para todos os alunos que ainda não enviaram a documentação deste mês?');">
                         <i class="bi bi-clock-history me-2"></i> Enviar Lembrete Preventivo
                     </button>
                 </form>
 
                 <!-- Botão 2: Cobrança de Atraso (Vermelho) -->
-                <form action="{% url 'notificar_atrasados' %}" method="POST" onsubmit="return confirm('Atenção: Esta ação enviará um ALERTA GRAVE de possível perda de bolsa para os alunos pendentes. Deseja prosseguir? O processo pode demorar alguns segundos.');">
+                <form action="{% url 'notificar_atrasados' %}" method="POST" class="m-0 p-0">
                     {% csrf_token %}
                     <input type="hidden" name="tipo_notificacao" value="atraso">
-                    <button type="submit" class="btn btn-danger shadow-sm fw-bold w-100 text-start">
+                    <button type="submit" class="btn btn-danger shadow-sm fw-bold w-100 text-start" onclick="return confirm('Atenção: Esta ação enviará um ALERTA GRAVE de possível perda de bolsa para os alunos pendentes. Deseja prosseguir? O processo pode demorar alguns segundos.');">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i> Cobrar Monitores em Atraso
                     </button>
                 </form>
-                
+            
             </div>
         </div>
     </div>
