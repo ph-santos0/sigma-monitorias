@@ -20,6 +20,7 @@ urlpatterns = [
     path('recuperar-senha/enviado/', auth_views.PasswordResetDoneView.as_view(template_name='sigma/recuperar_senha/enviado.html'), name='password_reset_done'),
     path('recuperar-senha/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='sigma/recuperar_senha/confirmar.html'), name='password_reset_confirm'),
     path('recuperar-senha/concluido/', auth_views.PasswordResetCompleteView.as_view(template_name='sigma/recuperar_senha/concluido.html'), name='password_reset_complete'),
+    path('desenvolvedores/', views.desenvolvedores, name='desenvolvedores'),
     
     # ----------------------------------------------------
     # Rotas do Monitor (Estudante)

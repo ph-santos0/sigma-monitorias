@@ -1145,3 +1145,6 @@ def editar_monitoria(request, monitoria_id):
     
     # A página é renderizada. Se foi POST e falhou, o `form` aqui dentro tem a lista de `non_field_errors`.
     return render(request, 'sigma/pedagogico/criar_monitoria.html', contexto)
+
+def desenvolvedores(request):
+    return render(request, 'sigma/desenvolvedores.html')

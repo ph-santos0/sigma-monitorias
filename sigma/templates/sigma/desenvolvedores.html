@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desenvolvedores - SIGMA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2b2b2b 0%, #3e3e3e 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .dev-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .dev-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3) !important;
+        }
+        .dev-banner {
+            height: 90px;
+            background: linear-gradient(90deg, #198754, #28a745);
+        }
+        .dev-avatar {
+            width: 115px;
+            height: 115px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            margin-top: -58px;
+            object-fit: cover;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .social-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .social-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="py-5 px-3 d-flex align-items-center">
+    <div class="container" style="max-width: 900px;">
+        
+        <!-- Cabeçalho do Projeto -->
+        <div class="text-center text-white mb-5">
+            <span class="badge bg-success px-3 py-2 mb-2 rounded-pill">
+                <i class="bi bi-mortarboard-fill me-1"></i> Trabalho de Conclusão de Curso (TCC)
+            </span>
+            <h1 class="fw-light mb-1"><i class="bi bi-box"></i> SIGMA</h1>
+            <p class="text-white-50 mb-0">Sistema de Gestão de Monitorias — IFMG Campus São João Evangelista</p>
+        </div>
+
+        <!-- Cards dos Criadores -->
+        <div class="row g-4 justify-content-center">
+            
+            <!-- CARD 1: PEDRO HENRIQUE SANTOS -->
+            <div class="col-md-6">
+                <div class="card dev-card shadow h-100 text-center">
+                    <div class="dev-banner"></div>
+                    <div class="card-body px-4 pb-4 pt-0">
+                        <!-- Salve sua foto em: sigma/static/sigma/img/pedro.jpg -->
+                        <img src="{% static 'sigma/img/pedro.jpg' %}" 
+                             onerror="this.src='https://ui-avatars.com/api/?name=Pedro+Santos&background=198754&color=fff&size=200'" 
+                             alt="Pedro Henrique Santos" class="dev-avatar mb-3">
+                        
+                        <h4 class="fw-bold text-dark mb-0">Pedro Henrique Santos</h4>
+                        <p class="text-success fw-semibold small mb-1">Bachelor of Information Systems</p>
+                        <p class="text-muted small mb-3">IFMG — Campus São João Evangelista</p>
+                        
+                        <p class="text-secondary small px-2 mb-4">
+                            Coautor e desenvolvedor do sistema SIGMA, com foco na arquitetura backend em Python/Django, regras de negócio e automação de fluxos acadêmicos.
+                        </p>
+
+                        <!-- Redes Sociais Pedro -->
+                        <div class="d-flex justify-content-center gap-2 border-top pt-3">
+                            <a href="https://github.com/ph-santos0" target="_blank" class="btn btn-outline-dark social-btn" title="GitHub">
+                                <i class="bi bi-github fs-5"></i>
+                            </a>
+                            <a href="https://www.linkedin.com/in/ph-santos0" target="_blank" class="btn btn-outline-primary social-btn" title="LinkedIn">
+                                <i class="bi bi-linkedin fs-5"></i>
+                            </a>
+                            <a href="http://lattes.cnpq.br/4741144152733992" target="_blank" class="btn btn-outline-info social-btn" title="Currículo Lattes">
+                                <i class="bi bi-mortarboard-fill fs-5"></i>
+                            </a>
+                            <a href="mailto:phsantos3010@gmail.com" class="btn btn-outline-danger social-btn" title="Gmail (phsantos3010@gmail.com)">
+                                <i class="bi bi-envelope-fill fs-5"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2: JULYA ALVES -->
+            <div class="col-md-6">
+                <div class="card dev-card shadow h-100 text-center">
+                    <div class="dev-banner"></div>
+                    <div class="card-body px-4 pb-4 pt-0">
+                        <!-- Salve a foto dela em: sigma/static/sigma/img/julya.jpg -->
+                        <img src="{% static 'sigma/img/julya.jpg' %}" 
+                             onerror="this.src='https://ui-avatars.com/api/?name=Julya+Alves&background=198754&color=fff&size=200'" 
+                             alt="Julya Alves" class="dev-avatar mb-3">
+                        
+                        <h4 class="fw-bold text-dark mb-0">Julya Alves</h4>
+                        <p class="text-success fw-semibold small mb-1">Bachelor of Information Systems</p>
+                        <p class="text-muted small mb-3">IFMG — Campus São João Evangelista</p>
+                        
+                        <p class="text-secondary small px-2 mb-4">
+                            Coautora e desenvolvedora do sistema SIGMA, atuando no levantamento de requisitos pedagógicos, modelagem e experiência de usuário.
+                        </p>
+
+                        <!-- Redes Sociais Julya -->
+                        <div class="d-flex justify-content-center gap-2 border-top pt-3">
+                            <a href="https://github.com/JulyaAalves" target="_blank" class="btn btn-outline-dark social-btn" title="GitHub">
+                                <i class="bi bi-github fs-5"></i>
+                            </a>
+                            <a href="https://www.linkedin.com/in/alves-julya/" target="_blank" class="btn btn-outline-primary social-btn" title="LinkedIn">
+                                <i class="bi bi-linkedin fs-5"></i>
+                            </a>
+                            <a href="#" onclick="return false;" class="btn btn-outline-info social-btn opacity-50" style="cursor: not-allowed;" title="Currículo Lattes (Em breve)">
+                                <i class="bi bi-mortarboard-fill fs-5"></i>
+                            </a>
+                            <a href="mailto:alvesjulya5@gmail.com" class="btn btn-outline-danger social-btn" title="Gmail (alvesjulya5@gmail.com)">
+                                <i class="bi bi-envelope-fill fs-5"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Botão Único: Voltar para o Sistema -->
+        <div class="text-center mt-5">
+            <a href="{% url 'login' %}" class="btn btn-success px-4 py-2 shadow-sm">
+                <i class="bi bi-arrow-left-circle me-2"></i> Voltar para o Sistema
+            </a>
+        </div>
+
+    </div>
+</body>
+</html>

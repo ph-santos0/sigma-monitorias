@@ -71,8 +71,24 @@
         {% endif %}
 
         <!-- Conteúdo Principal -->
-        <main class="main-content flex-grow-1">
-            {% block content %}{% endblock %}
+        <main class="main-content flex-grow-1 d-flex flex-column min-vh-100">
+            <div class="flex-grow-1">
+                {% block content %}{% endblock %}
+            </div>
+
+            {% if user.is_authenticated %}
+            <!-- Rodapé Institucional dos Criadores -->
+            <footer class="mt-5 pt-3 border-top text-center text-muted small">
+                <span><strong>SIGMA</strong> &copy; 2026 — IFMG Campus São João Evangelista</span>
+                <span class="mx-2">|</span>
+                <span>
+                    Desenvolvido por 
+                    <a href="{% url 'desenvolvedores' %}" target="_blank" class="text-success fw-bold text-decoration-none">
+                        <i class="bi bi-code-slash"></i> Pedro Santos &amp; Julya Alves
+                    </a>
+                </span>
+            </footer>
+            {% endif %}
         </main>
     </div>
     
